@@ -1,4 +1,4 @@
-package common
+package storage
 
 import (
 	"time"
@@ -16,11 +16,11 @@ type DbUser struct {
 	Username    string
 	FirstName   string
 	LastName    string
-	Email       string
+	Email       string   `gorm:"type:varchar(100);unique_index"`
 	Clubs       []DbClub `gorm:"many2many:user_scopes;"`
 	Credentials DbCredentials
 	Scopes      []DbUserScope `gorm:"many2many:user_scopes;"`
-	Group       []DbUserGroup `gorm:"many2many:user_group;"`
+	Groups      []DbUserGroup `gorm:"many2many:user_group;"`
 	Wings       []DbWing      `gorm:"many2many:user_wing;"`
 }
 
@@ -42,9 +42,9 @@ type DbUserScope struct {
 // DbUserGroup - defines a set of scopes that can be applied to a user
 type DbUserGroup struct {
 	gorm.Model
-	Key   string
-	Name  string
-	Scope []DbUserScope
+	Key    string
+	Name   string
+	Scopes []DbUserScope
 }
 
 // DbClub - describes a paragliding club
@@ -108,9 +108,16 @@ type DbFlight struct {
 // DbIncident - describes an incident
 type DbIncident struct {
 	gorm.Model
-	Level       int
-	Description string
-	Public      bool
+	Level                int
+	Description          string
+	Public               bool
+	NotifiedPolice       bool
+	NotifiedAmbulance    bool
+	AirAmbulance         bool
+	HeadOfSecurityCalled bool
+	LatestFlight         DbFlight
+	Weatherconfitions    string
+	// TODO: extend to better reflect the original flightlog
 }
 
 // DbWing - describes a wing
@@ -143,13 +150,11 @@ type DbFileReference struct {
 // DbTakeoffType - describes a type of takeoff
 type DbTakeoffType struct {
 	gorm.Model
-	Name  string
-	Value int
+	Name string
 }
 
 // DbFlightType - is this a Paragliding, Speedrider, Baloon etc
 type DbFlightType struct {
 	gorm.Model
-	Name  string
-	Value int
+	Name string
 }

@@ -12,14 +12,14 @@ import (
 
 // User - defines the basic user model exposed on the API's
 type User struct {
-	ID            int
+	ID            uint
 	Username      string
 	FirstName     string
 	LastName      string
 	Email         string
 	Clubs         []Club
 	Scopes        []UserScope
-	Group         []UserGroup
+	Groups        []UserGroup
 	Wings         []Wing
 	PasswordHash  []byte
 	PasswordSalt  []byte
@@ -29,7 +29,7 @@ type User struct {
 
 // UserScope - the possible scopes of a user
 type UserScope struct {
-	ID        int
+	ID        uint
 	Key       string
 	Name      string
 	TimeStamp time.Time
@@ -37,22 +37,22 @@ type UserScope struct {
 
 // UserGroup - defines a set of scopes that can be applied to a user
 type UserGroup struct {
-	ID    int
-	Key   string
-	Name  string
-	Scope []UserScope
+	ID     uint
+	Key    string
+	Name   string
+	Scopes []UserScope
 }
 
 // Club - describes a paragliding club
 type Club struct {
-	ID          int
+	ID          uint
 	Location    Location
 	Description string
 }
 
 // Location - describes a place
 type Location struct {
-	ID          int
+	ID          uint
 	Name        string
 	Elevation   int
 	Description string
@@ -62,23 +62,24 @@ type Location struct {
 
 // StartSite - describes a start sight for flight
 type StartSite struct {
-	ID          int
+	ID          uint
 	Name        string
 	Description string
+	Location    Location
 	Waypoints   []Waypoint
 	Difficulty  int
 }
 
 // Waypoint - describes a start sight for flight
 type Waypoint struct {
-	ID         int
+	ID         uint
 	Difficulty int
 	Location   Location
 }
 
 // Flight - describes a flight
 type Flight struct {
-	ID          int
+	ID          uint
 	User        User
 	Startsite   StartSite
 	Waypoint    Waypoint
@@ -97,15 +98,21 @@ type Flight struct {
 
 // Incident - describes an incident
 type Incident struct {
-	ID          int
-	Level       int
-	Description string
-	Public      bool
+	ID                   uint
+	Level                int
+	Description          string
+	Public               bool
+	NotifiedPolice       bool
+	NotifiedAmbulance    bool
+	AirAmbulance         bool
+	HeadOfSecurityCalled bool
+	LatestFlightID       uint
+	Weatherconfitions    string
 }
 
 // Wing - describes a wing
 type Wing struct {
-	ID      int
+	ID      uint
 	Name    string
 	Images  []FileReference
 	Details WingDetails
@@ -113,7 +120,7 @@ type Wing struct {
 
 // WingDetails - details of the wing test
 type WingDetails struct {
-	ID          int
+	ID          uint
 	Description string
 	DhvScore    string
 	EnaScore    string
@@ -121,6 +128,7 @@ type WingDetails struct {
 
 // FileReference - describes whre a file is stored
 type FileReference struct {
+	ID           uint
 	MimeType     string
 	FileName     string
 	FileLocation string
@@ -128,14 +136,12 @@ type FileReference struct {
 
 // TakeoffType - describes a type of takeoff
 type TakeoffType struct {
-	ID    int
 	Name  string
-	Value int
+	Value uint
 }
 
 // FlightType - is this a Paragliding, Speedrider, Baloon etc
 type FlightType struct {
-	ID    int
 	Name  string
-	Value int
+	Value uint
 }
