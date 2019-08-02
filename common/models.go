@@ -48,6 +48,7 @@ type Club struct {
 	ID          uint
 	Location    Location
 	Description string
+	Name        string
 }
 
 // Location - describes a place

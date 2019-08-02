@@ -52,6 +52,7 @@ type DbClub struct {
 	gorm.Model
 	Location    DbLocation
 	Description string
+	Name        string
 }
 
 // DbCoordinates - describes a set of coordinates

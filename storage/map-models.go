@@ -46,7 +46,14 @@ func mapScope(scope common.UserScope) DbUserScope {
 }
 
 func mapClub(club common.Club) DbClub {
-	return DbClub{}
+	return DbClub{
+		Description: club.Description,
+		Name:        club.Name,
+		Model: gorm.Model{
+			ID: club.ID,
+		},
+		Location: mapLocation(club.Location),
+	}
 }
 
 func mapClubs(clubs []common.Club) []DbClub {
@@ -238,3 +245,212 @@ func mapIncidents(incidents []common.Incident) []DbIncident {
 }
 
 // ######################## MAP FROM DATA LAYER TO PRESENTATION / BUSINESS #########################
+
+func demapUser(user DbUser) common.User {
+	return common.User{
+		ID:        user.Model.ID,
+		Username:  user.Username,
+		FirstName: user.FirstName,
+		LastName:  user.LastName,
+		Email:     user.Email,
+		Scopes:    demapScopes(user.Scopes),
+		Clubs:     demapClubs(user.Clubs),
+		Groups:    demapGroups(user.Groups),
+		Wings:     demapWings(user.Wings),
+	}
+}
+
+func demapUsers(users []DbUser) []common.User {
+	newUsers := make([]common.User, len(users))
+
+	for i, u := range users {
+		newUsers[i] = demapUser(u)
+	}
+
+	return newUsers
+}
+
+func demapScope(scope DbUserScope) common.UserScope {
+	return common.UserScope{
+		Key:  scope.Key,
+		Name: scope.Name,
+		ID:   scope.Model.ID,
+	}
+}
+
+func demapScopes(scopes []DbUserScope) []common.UserScope {
+	newScopes := make([]common.UserScope, len(scopes))
+
+	for i, r := range scopes {
+		newScopes[i] = demapScope(r)
+	}
+
+	return newScopes
+}
+
+func demapClub(club DbClub) common.Club {
+	return common.Club{
+		Description: club.Description,
+		ID:          club.Model.ID,
+		Name:        club.Name,
+		Location:    demapLocation(club.Location),
+	}
+}
+
+func demapClubs(club []DbClub) []common.Club {
+	newClubs := make([]common.Club, len(club))
+
+	for i, c := range club {
+		newClubs[i] = demapClub(c)
+	}
+
+	return newClubs
+}
+
+func demapLocation(club DbLocation) common.Location {
+	return common.Location{
+		Lattitude:   club.Coordinates.Lattitude,
+		Longitude:   club.Coordinates.Longitude,
+		Name:        club.Name,
+		Elevation:   club.Elevation,
+		Description: club.Description,
+		ID:          club.Model.ID,
+	}
+}
+
+func demapGroup(group DbUserGroup) common.UserGroup {
+	return common.UserGroup{
+		ID:     group.Model.ID,
+		Key:    group.Key,
+		Name:   group.Name,
+		Scopes: demapScopes(group.Scopes),
+	}
+}
+
+func demapGroups(groups []DbUserGroup) []common.UserGroup {
+	newGroups := make([]common.UserGroup, len(groups))
+
+	for i, g := range groups {
+		newGroups[i] = demapGroup(g)
+	}
+
+	return newGroups
+}
+
+func demapWing(wing DbWing) common.Wing {
+	return common.Wing{
+		ID:   wing.Model.ID,
+		Name: wing.Name,
+		Details: common.WingDetails{
+			DhvScore:    wing.Details.DhvScore,
+			EnaScore:    wing.Details.EnaScore,
+			Description: wing.Details.Description,
+			ID:          wing.Details.Model.ID,
+		},
+		Images: demapFileReferences(wing.Images),
+	}
+}
+
+func demapWings(wings []DbWing) []common.Wing {
+	newWings := make([]common.Wing, len(wings))
+
+	for i, w := range wings {
+		newWings[i] = demapWing(w)
+	}
+
+	return newWings
+}
+
+func demapFileReference(file DbFileReference) common.FileReference {
+	return common.FileReference{
+		ID:           file.Model.ID,
+		MimeType:     file.MimeType,
+		FileName:     file.FileName,
+		FileLocation: file.FileLocation,
+	}
+}
+
+func demapFileReferences(file []DbFileReference) []common.FileReference {
+	newFiles := make([]common.FileReference, len(file))
+
+	for i, f := range file {
+		newFiles[i] = demapFileReference(f)
+	}
+
+	return newFiles
+}
+
+func demapStartSite(site DbStartSite) common.StartSite {
+	return common.StartSite{
+		Difficulty:  site.Difficulty,
+		Description: site.Description,
+		ID:          site.ID,
+		Location:    demapLocation(site.Location),
+		Waypoints:   demapWaypoints(site.Waypoints),
+	}
+}
+
+func demapWaypoint(point DbWaypoint) common.Waypoint {
+	return common.Waypoint{
+		Difficulty: point.Difficulty,
+		Location:   demapLocation(point.Location),
+		ID:         point.ID,
+	}
+}
+
+func demapWaypoints(points []DbWaypoint) []common.Waypoint {
+	newPoints := make([]common.Waypoint, len(points))
+
+	for i, p := range points {
+		newPoints[i] = demapWaypoint(p)
+	}
+
+	return newPoints
+}
+
+func demapFlight(flight DbFlight) common.Flight {
+	return common.Flight{
+		ID:        flight.ID,
+		Startsite: demapStartSite(flight.Startsite),
+		User:      demapUser(flight.User),
+		Waypoint:  demapWaypoint(flight.Waypoint),
+		Duration:  flight.Duration,
+		MaxHight:  flight.MaxHight,
+		HangTime:  flight.HangTime,
+		Wing:      demapWing(flight.Wing),
+		Photos:    demapFileReferences(flight.Photos),
+		FlightLog: demapFileReference(flight.FlightLog),
+		FlightType: common.FlightType{
+			Value: flight.FlightType.ID,
+			Name:  flight.FlightType.Name,
+		},
+		TakeOffType: common.TakeoffType{
+			Value: flight.TakeOffType.ID,
+			Name:  flight.TakeOffType.Name,
+		},
+		Incidents: demapIncidents(flight.Incidents),
+	}
+}
+
+func demapIncident(incident DbIncident) common.Incident {
+	return common.Incident{
+		ID:                incident.ID,
+		Level:             incident.Level,
+		Description:       incident.Description,
+		Public:            incident.Public,
+		NotifiedAmbulance: incident.NotifiedAmbulance,
+		NotifiedPolice:    incident.NotifiedPolice,
+		LatestFlightID:    incident.LatestFlight.ID,
+		Weatherconfitions: incident.Weatherconfitions,
+	}
+}
+
+func demapIncidents(incidents []DbIncident) []common.Incident {
+	newIncidents := make([]common.Incident, len(incidents))
+
+	for i, in := range incidents {
+		newIncidents[i] = demapIncident(in)
+	}
+
+	return newIncidents
+}
