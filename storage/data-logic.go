@@ -4,7 +4,9 @@ import (
 	"fmt"
 
 	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/klyngen/flightlogger/common"
+	"github.com/pkg/errors"
 )
 
 // OrmDatabase - should implement the databaseInterface
@@ -75,19 +77,42 @@ func (d *OrmDatabase) CreateUser(user common.User) (common.User, error) {
 func (d *OrmDatabase) GetAllUsers(limit int, page int) ([]common.User, error) {
 	var users []DbUser
 	d.db.Limit(limit).Offset((page - 1) * limit).Find(&users)
-
+	return demapUsers(users), nil
 }
 
+// GetUser - gets a single user if it exists
 func (d *OrmDatabase) GetUser(ID int) (common.User, error) {
-	panic("not implemented")
+	var user DbUser
+	return demapUser(user), errors.Wrap(d.db.First(user, ID).Error, "Unable to get user")
 }
 
+// UpdateUser - update an existing user if it exists
 func (d *OrmDatabase) UpdateUser(ID int, user common.User) (common.User, error) {
-	panic("not implemented")
+	dbUser := mapUser(user)
+	return demapUser(dbUser), errors.Wrap(d.db.Save(&dbUser).Error, "Unable to update a user")
 }
 
+// DeleteUser - deletes a user
 func (d *OrmDatabase) DeleteUser(ID int) error {
-	panic("not implemented")
+	var user DbUser
+
+	// FIXME: see if this actually works
+
+	// TODO: also delete related entities #GDPR
+
+	err := d.db.First(&user, ID).Error
+
+	if err != nil {
+		return errors.Wrap(err, "Cannot delete a user we cannot find")
+	}
+
+	err = d.db.Delete(&user, ID).Error
+
+	if err != nil {
+		return errors.Wrap(err, "Unable to delete the user")
+	}
+
+	return nil
 }
 
 // Location CRUD and search
