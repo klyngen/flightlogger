@@ -432,6 +432,16 @@ func demapFlight(flight DbFlight) common.Flight {
 	}
 }
 
+func demapIncidents(incidents []DbIncident) []common.Incident {
+	newIncidents := make([]common.Incident, len(incidents))
+
+	for i, in := range incidents {
+		newIncidents[i] = demapIncident(in)
+	}
+
+	return newIncidents
+}
+
 func demapIncident(incident DbIncident) common.Incident {
 	return common.Incident{
 		ID:                incident.ID,
@@ -443,14 +453,4 @@ func demapIncident(incident DbIncident) common.Incident {
 		LatestFlightID:    incident.LatestFlight.ID,
 		Weatherconfitions: incident.Weatherconfitions,
 	}
-}
-
-func demapIncidents(incidents []DbIncident) []common.Incident {
-	newIncidents := make([]common.Incident, len(incidents))
-
-	for i, in := range incidents {
-		newIncidents[i] = demapIncident(in)
-	}
-
-	return newIncidents
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/jinzhu/gorm"
+	// This import is needed in order to utilize MySql
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/klyngen/flightlogger/common"
 	"github.com/pkg/errors"
@@ -15,40 +16,57 @@ type OrmDatabase struct {
 }
 
 // MigrateDatabase - migrates the database
-func (d *OrmDatabase) MigrateDatabase() {
+func (d *OrmDatabase) MigrateDatabase() error {
 	// Migrate location first
-	d.db.AutoMigrate(&DbFileReference{})
-	d.db.AutoMigrate(&DbCoordinates{})
-	d.db.AutoMigrate(&DbLocation{})
+	err := d.db.AutoMigrate(&DbFileReference{}).Error
+	err = d.db.AutoMigrate(&DbCoordinates{}).Error
+	err = d.db.AutoMigrate(&DbLocation{}).Error
+
+	if err != nil {
+		return errors.Wrap(err, "Unable to migrate basic Location-coordinates")
+	}
 
 	// Create club entity before user and flights
-	d.db.AutoMigrate(&DbClub{})
+	err = d.db.AutoMigrate(&DbClub{}).Error
 
 	// Waypoint and start are dependent on location
-	d.db.AutoMigrate(&DbWaypoint{})
-	d.db.AutoMigrate(&DbStartSite{})
+	err = d.db.AutoMigrate(&DbWaypoint{}).Error
+	err = d.db.AutoMigrate(&DbStartSite{}).Error
+
+	if err != nil {
+		return errors.Wrap(err, "Unable to migrate flight base-entities")
+	}
 
 	// Wing related data
-	d.db.AutoMigrate(&DbWingScoreDetails{})
-	d.db.AutoMigrate(&DbWing{})
+	err = d.db.AutoMigrate(&DbWingScoreDetails{}).Error
+	err = d.db.AutoMigrate(&DbWing{}).Error
+
+	if err != nil {
+		return errors.Wrap(err, "Unable to migrate wing-entities")
+	}
 
 	// Flight related entities
-	d.db.AutoMigrate(&DbFlightType{})
-	d.db.AutoMigrate(&DbTakeoffType{})
-	d.db.AutoMigrate(&DbIncident{})
-	d.db.AutoMigrate(&DbFlight{})
+	err = d.db.AutoMigrate(&DbFlightType{}).Error
+	err = d.db.AutoMigrate(&DbTakeoffType{}).Error
+	err = d.db.AutoMigrate(&DbIncident{}).Error
+	err = d.db.AutoMigrate(&DbFlight{}).Error
+
+	if err != nil {
+		return errors.Wrap(err, "Unable to migrate flight-entities")
+	}
 
 	// Set up the user related entities
-	d.db.AutoMigrate(&DbCredentials{})
-	d.db.AutoMigrate(&DbUserScope{})
-	d.db.AutoMigrate(&DbUserGroup{})
-	d.db.AutoMigrate(&DbUser{})
+	err = d.db.AutoMigrate(&DbCredentials{}).Error
+	err = d.db.AutoMigrate(&DbUserScope{}).Error
+	err = d.db.AutoMigrate(&DbUserGroup{}).Error
+	err = d.db.AutoMigrate(&DbUser{}).Error
+
+	return errors.Wrap(err, "Unable to migrate the database")
 }
 
 // CreateConnection - establish a connection to the database
 func (d *OrmDatabase) CreateConnection(username string, password string, database string, port string, hostname string) error {
-	panic("not implemented")
-	db, err := gorm.Open("mysql", fmt.Sprintf("%s:%s@/%?charset=utf8&parseTime=True&loc=%s", username, password, database, hostname))
+	db, err := gorm.Open("mysql", fmt.Sprintf("%s:%s@/%s?charset=utf8&parseTime=True&loc=Local", username, password, database))
 
 	if err != nil {
 		return err
@@ -115,7 +133,6 @@ func (d *OrmDatabase) DeleteUser(ID int) error {
 	return nil
 }
 
-// Location CRUD and search
 func (d *OrmDatabase) CreateLocation(location common.Location) (common.Location, error) {
 	panic("not implemented")
 }
@@ -145,7 +162,7 @@ func (d *OrmDatabase) UpdateUserGroup(groupID int, userGroup common.UserGroup, s
 	panic("not implemented")
 }
 
-func (d *OrmDatabase) GetAllUserGroups(limit int) ([]common.UserGroup, error) {
+func (d *OrmDatabase) GetAllUserGroups(limit int, page int) ([]common.UserGroup, error) {
 	panic("not implemented")
 }
 
@@ -183,7 +200,7 @@ func (d *OrmDatabase) DeleteFlight(ID int) error {
 	panic("not implemented")
 }
 
-func (d *OrmDatabase) GetAllFlights(limit int) ([]common.Flight, error) {
+func (d *OrmDatabase) GetAllFlights(limit int, page int) ([]common.Flight, error) {
 	panic("not implemented")
 }
 
@@ -212,7 +229,7 @@ func (d *OrmDatabase) GetFlightIncidentByLevel(errorLevel int) ([]common.Flight,
 	panic("not implemented")
 }
 
-func (d *OrmDatabase) GetFlightIncidents(limit int) ([]common.Flight, error) {
+func (d *OrmDatabase) GetFlightIncidents(limit int, page int) ([]common.Flight, error) {
 	panic("not implemented")
 }
 
@@ -233,7 +250,7 @@ func (d *OrmDatabase) GetWing(ID int) (common.Wing, error) {
 	panic("not implemented")
 }
 
-func (d *OrmDatabase) GetAllWings(limit int) (common.Wing, error) {
+func (d *OrmDatabase) GetAllWings(limit int, page int) (common.Wing, error) {
 	panic("not implemented")
 }
 
@@ -266,6 +283,10 @@ func (d *OrmDatabase) GetStartSite(ID int) (common.StartSite, error) {
 	panic("not implemented")
 }
 
-func (d *OrmDatabase) GetAllStartSites(limit int) ([]common.StartSite, error) {
+func (d *OrmDatabase) GetAllStartSites(limit int, page int) ([]common.StartSite, error) {
+	panic("not implemented")
+}
+
+func (d *OrmDatabase) GetSiteIncidents(siteID uint) ([]common.Incident, error) {
 	panic("not implemented")
 }

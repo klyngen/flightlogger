@@ -3,8 +3,8 @@ package common
 // FlightLogDatabase - defines an interface to the data-layer
 type FlightLogDatabase interface {
 	// What all databases should do
-	MigrateDatabase()
-	CreateConnection(username string, password string, port string, hostname string) error
+	MigrateDatabase() error
+	CreateConnection(username string, password string, database string, port string, hostname string) error
 
 	// User CRUD
 	CreateUser(user User) (User, error)
