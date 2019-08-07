@@ -10,7 +10,7 @@ import (
 func SetupDbTest() common.FlightLogDatabase {
 	var db = &OrmDatabase{}
 
-	err := db.CreateConnection("root", "Drit317955", "flightlog", "3306", "localhost")
+	err := db.CreateConnection("root", "Passwd", "flightlog", "3306", "localhost")
 
 	if err != nil {
 		log.Println(err)
