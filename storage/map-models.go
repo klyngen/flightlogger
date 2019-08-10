@@ -7,8 +7,8 @@ import (
 
 // ######################## MAP FROM BUSINESS / PRESENTATION INTO DATA #########################
 
-func mapUser(user common.User) DbUser {
-	return DbUser{
+func mapUser(user common.User) (DbUser, DbCredentials) {
+	duser := DbUser{
 		Model: gorm.Model{
 			ID: user.ID,
 		},
@@ -18,13 +18,16 @@ func mapUser(user common.User) DbUser {
 		Email:     user.Email,
 		Clubs:     mapClubs(user.Clubs),
 		Groups:    mapUserGroups(user.Groups),
-		Credentials: DbCredentials{
-			PasswordHash: user.PasswordHash,
-			PasswordSalt: user.PasswordSalt,
-		},
-		Scopes: mapScopes(user.Scopes),
-		Wings:  mapWings(user.Wings),
+		Scopes:    mapScopes(user.Scopes),
+		Wings:     mapWings(user.Wings),
 	}
+
+	creds := DbCredentials{
+		PasswordHash: user.PasswordHash,
+		PasswordSalt: user.PasswordSalt,
+	}
+
+	return duser, creds
 }
 
 func mapScopes(scopes []common.UserScope) []DbUserScope {
@@ -184,12 +187,13 @@ func mapWaypoints(waypoints []common.Waypoint) []DbWaypoint {
 }
 
 func mapFlight(flight common.Flight) DbFlight {
+	user, _ := mapUser(flight.User)
 	return DbFlight{
 		Model: gorm.Model{
 			ID: flight.ID,
 		},
 		Startsite: mapStartsite(flight.Startsite),
-		User:      mapUser(flight.User),
+		User:      user,
 		Waypoint:  mapWayPoint(flight.Waypoint),
 		Duration:  flight.Duration,
 		Notes:     flight.Notes,
@@ -248,7 +252,7 @@ func mapIncidents(incidents []common.Incident) []DbIncident {
 
 func demapUser(user DbUser) common.User {
 	return common.User{
-		ID:        user.Model.ID,
+		ID:        user.ID,
 		Username:  user.Username,
 		FirstName: user.FirstName,
 		LastName:  user.LastName,

@@ -13,20 +13,20 @@ import (
 // DbUser - the ground pillar of the userconstruct
 type DbUser struct {
 	gorm.Model
-	Username    string
-	FirstName   string
-	LastName    string
-	Email       string   `gorm:"type:varchar(100);unique_index"`
-	Clubs       []DbClub `gorm:"many2many:user_scopes;"`
-	Credentials DbCredentials
-	Scopes      []DbUserScope `gorm:"many2many:user_scopes;"`
-	Groups      []DbUserGroup `gorm:"many2many:user_group;"`
-	Wings       []DbWing      `gorm:"many2many:user_wing;"`
+	Username  string
+	FirstName string
+	LastName  string
+	Email     string        `gorm:"type:varchar(100);unique_index"`
+	Clubs     []DbClub      `gorm:"many2many:user_scopes;"`
+	Scopes    []DbUserScope `gorm:"many2many:user_scopes;"`
+	Groups    []DbUserGroup `gorm:"many2many:user_group;"`
+	Wings     []DbWing      `gorm:"many2many:user_wing;"`
 }
 
 // DbCredentials - the login credentials for a user
 type DbCredentials struct {
 	gorm.Model
+	UserID       uint
 	PasswordHash []byte
 	PasswordSalt []byte
 }
@@ -65,10 +65,11 @@ type DbCoordinates struct {
 // DbLocation - describes a place
 type DbLocation struct {
 	gorm.Model
-	Coordinates DbCoordinates
-	Name        string
-	Description string
-	Elevation   int
+	Coordinates        DbCoordinates `gorm:"foreignkey:CoordinatesReferer"`
+	CoordinatesReferer uint
+	Name               string
+	Description        string
+	Elevation          int
 }
 
 // DbStartSite - describes a start sight for flight
@@ -90,9 +91,9 @@ type DbWaypoint struct {
 // DbFlight - describes a flight
 type DbFlight struct {
 	gorm.Model
-	Startsite   DbStartSite
-	User        DbUser
-	Waypoint    DbWaypoint
+	Startsite   DbStartSite `gorm:"association_foreignkey:Refer"`
+	User        DbUser      `gorm:"association_foreignkey:Refer"`
+	Waypoint    DbWaypoint  `gorm:"association_foreignkey:Refer"`
 	Duration    int
 	Notes       string
 	Distance    int
@@ -101,9 +102,9 @@ type DbFlight struct {
 	Wing        DbWing `gorm:"many2many:flight_wing;"`
 	Incidents   []DbIncident
 	Photos      []DbFileReference
-	FlightLog   DbFileReference
-	FlightType  DbFlightType
-	TakeOffType DbTakeoffType
+	FlightLog   DbFileReference `gorm:"association_foreignkey:Refer"`
+	FlightType  DbFlightType    `gorm:"association_foreignkey:Refer"`
+	TakeOffType DbTakeoffType   `gorm:"association_foreignkey:Refer"`
 }
 
 // DbIncident - describes an incident

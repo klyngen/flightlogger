@@ -29,6 +29,14 @@
   version = "v1.0.0"
 
 [[projects]]
+  branch = "master"
+  digest = "1:2e998f93e013cced304e92fb5be79fe50098a403102846259daf3c3e543f3f82"
+  name = "github.com/klyngen/flightlogger"
+  packages = ["common"]
+  pruneopts = "UT"
+  revision = "57e4b8b3465dbd711ec0e67ae9dca5253cb6ccba"
+
+[[projects]]
   digest = "1:cf31692c14422fa27c83a05292eb5cbe0fb2775972e8f1f8446a71549bd8980b"
   name = "github.com/pkg/errors"
   packages = ["."]
@@ -50,6 +58,7 @@
   input-imports = [
     "github.com/jinzhu/gorm",
     "github.com/jinzhu/gorm/dialects/mysql",
+    "github.com/klyngen/flightlogger/common",
     "github.com/pkg/errors",
   ]
   solver-name = "gps-cdcl"

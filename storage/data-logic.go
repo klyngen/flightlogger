@@ -60,7 +60,16 @@ func (d *OrmDatabase) MigrateDatabase() error {
 	err = d.db.AutoMigrate(&DbUserScope{}).Error
 	err = d.db.AutoMigrate(&DbUserGroup{}).Error
 	err = d.db.AutoMigrate(&DbUser{}).Error
+	if err != nil {
+		return errors.Wrap(err, "Unable to migrate user-entities")
+	}
 
+	err = d.db.Model(&DbCredentials{}).AddForeignKey("user_id", "db_users(id)", "CASCADE", "CASCADE").Error
+	err = d.db.Model(&DbLocation{}).AddForeignKey("coordinates_referer", "db_coordinates(id)", "CASCADE", "CASCADE").Error
+
+	if err != nil {
+		return errors.Wrap(err, "Unable to establich foreign keys")
+	}
 	return errors.Wrap(err, "Unable to migrate the database")
 }
 
@@ -80,15 +89,24 @@ func (d *OrmDatabase) CreateConnection(username string, password string, databas
 
 // CreateUser - try to create a new user
 func (d *OrmDatabase) CreateUser(user common.User) (common.User, error) {
-	mappedUser := mapUser(user)
+	mappedUser, mappedCreds := mapUser(user)
 	err := d.db.Create(&mappedUser).Error
 
+	// Create the base user entity
 	if err != nil {
-		user.ID = mappedUser.Model.ID
 		return user, err
 	}
 
-	return user, nil
+	// Set the user ID of the Credentials
+	mappedCreds.UserID = mappedUser.ID
+
+	err = d.db.Create(&mappedCreds).Error
+
+	if err != nil {
+
+	}
+
+	return demapUser(mappedUser), nil
 }
 
 // GetAllUsers - gets all users
@@ -99,24 +117,48 @@ func (d *OrmDatabase) GetAllUsers(limit int, page int) ([]common.User, error) {
 }
 
 // GetUser - gets a single user if it exists
-func (d *OrmDatabase) GetUser(ID int) (common.User, error) {
+func (d *OrmDatabase) GetUser(ID uint) (common.User, error) {
 	var user DbUser
-	return demapUser(user), errors.Wrap(d.db.First(user, ID).Error, "Unable to get user")
+	err := errors.Wrap(d.db.First(&user, ID).Error, "Unable to get user")
+
+	user.ID = ID
+
+	return demapUser(user), err
 }
 
 // UpdateUser - update an existing user if it exists
-func (d *OrmDatabase) UpdateUser(ID int, user common.User) (common.User, error) {
-	dbUser := mapUser(user)
+func (d *OrmDatabase) UpdateUser(ID uint, user common.User) (common.User, error) {
+
+	dbUser, _ := mapUser(user)
+	dbUser.ID = ID
+
+	// If the user has set its salt and hash, we probably want to update the credentials
+	if user.PasswordSalt != nil && user.PasswordHash != nil {
+		var creds DbCredentials
+		err := d.db.Where("user_id = ?", ID).First(&creds).Error
+
+		if err != nil {
+			return user, errors.Wrap(err, "Unable to update password details")
+		}
+
+		// Set the password
+		creds.PasswordHash = user.PasswordHash
+		creds.PasswordSalt = user.PasswordSalt
+
+		err = d.db.Save(&creds).Error
+
+		if err != nil {
+			return user, errors.Wrap(err, "Unable to update password details")
+		}
+	}
+
 	return demapUser(dbUser), errors.Wrap(d.db.Save(&dbUser).Error, "Unable to update a user")
 }
 
 // DeleteUser - deletes a user
-func (d *OrmDatabase) DeleteUser(ID int) error {
+// this deletion uses a hard deletes and removes all data related to a user
+func (d *OrmDatabase) DeleteUser(ID uint) error {
 	var user DbUser
-
-	// FIXME: see if this actually works
-
-	// TODO: also delete related entities #GDPR
 
 	err := d.db.First(&user, ID).Error
 
@@ -124,7 +166,26 @@ func (d *OrmDatabase) DeleteUser(ID int) error {
 		return errors.Wrap(err, "Cannot delete a user we cannot find")
 	}
 
-	err = d.db.Delete(&user, ID).Error
+	err = d.db.Model(&user).Association("Wings").Clear().Error
+
+	if err != nil {
+		errors.Wrap(err, "Unable to remove associated wings")
+	}
+
+	err = d.db.Model(&user).Association("Groups").Error
+
+	if err != nil {
+		errors.Wrap(err, "Unable to remove associated groups")
+	}
+
+	err = d.db.Model(&user).Association("Scopes").Error
+
+	if err != nil {
+		errors.Wrap(err, "Unable to remove associated scopes")
+	}
+
+	// Hard delete the user
+	err = d.db.Unscoped().Delete(&user, ID).Error
 
 	if err != nil {
 		return errors.Wrap(err, "Unable to delete the user")
@@ -133,12 +194,32 @@ func (d *OrmDatabase) DeleteUser(ID int) error {
 	return nil
 }
 
+// CreateLocation - creates a location. Locations are then again used
+// by StartSite, Waypoint etc
 func (d *OrmDatabase) CreateLocation(location common.Location) (common.Location, error) {
-	panic("not implemented")
+	mappedLocation := mapLocation(location)
+
+	// Store the coordinates first
+	err := d.db.Create(&mappedLocation.Coordinates).Error
+
+	if err != nil {
+		return location, errors.Wrap(err, "Unable to store coordinates")
+	}
+
+	// Make it possible to resolve the foreign key later
+	mappedLocation.CoordinatesReferer = mappedLocation.Coordinates.ID
+
+	err = d.db.Create(&mappedLocation).Error
+
+	if err != nil {
+		return location, errors.Wrap(err, "Could not create the location")
+	}
+
+	return demapLocation(mappedLocation), nil
 }
 
-func (d *OrmDatabase) UpdateLocation(ID int, location common.Location) (common.Location, error) {
-	panic("not implemented")
+func (d *OrmDatabase) UpdateLocation(ID uint, location common.Location) (common.Location, error) {
+
 }
 
 func (d *OrmDatabase) DeleteLocation(ID int) error {
