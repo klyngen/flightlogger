@@ -151,6 +151,11 @@ func mapLocation(loc common.Location) DbLocation {
 			Longitude: loc.Longitude,
 			Lattitude: loc.Lattitude,
 		},
+		CountryPart: DbCountryPart{
+			PostalCode:  loc.PostalCode,
+			AreaName:    loc.AreaName,
+			CountryPart: loc.CountryPart,
+		},
 	}
 }
 
@@ -319,7 +324,20 @@ func demapLocation(club DbLocation) common.Location {
 		Elevation:   club.Elevation,
 		Description: club.Description,
 		ID:          club.Model.ID,
+		PostalCode:  club.CountryPart.PostalCode,
+		CountryPart: club.CountryPart.CountryPart,
+		AreaName:    club.CountryPart.AreaName,
 	}
+}
+
+func demapLocations(locations []DbLocation) []common.Location {
+	newLocations := make([]common.Location, len(locations))
+
+	for i, l := range locations {
+		newLocations[i] = demapLocation(l)
+	}
+
+	return newLocations
 }
 
 func demapGroup(group DbUserGroup) common.UserGroup {

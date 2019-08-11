@@ -2,6 +2,7 @@ package storage
 
 import (
 	"log"
+	"os"
 	"testing"
 
 	"gotest.tools/assert"
@@ -23,7 +24,8 @@ func SetupDbTest() *OrmDatabase {
 
 func TestMigration(t *testing.T) {
 	db := SetupDbTest()
-
+	db.db.LogMode(true)
+	db.db.SetLogger(log.New(os.Stdout, "\r\n", 0))
 	err := db.MigrateDatabase()
 
 	if err != nil {
@@ -93,16 +95,36 @@ func TestLocationCycle(t *testing.T) {
 	db := SetupDbTest()
 
 	location := common.Location{
-		Name:        "Voss",
+		Name:        "Gjelle",
 		Lattitude:   61.02,
 		Longitude:   61.5,
 		Description: "Small town in the west of norway. Voss is known for its love for extreme sports",
+		PostalCode:  "1",
+		AreaName:    "Oslo",
+		CountryPart: "Oslo",
+	}
+
+	location2 := common.Location{
+		Name:        "Balbergtoppen",
+		Lattitude:   61.02,
+		Longitude:   61.5,
+		Description: "Not really in Oslo",
+		PostalCode:  "1",
+		AreaName:    "Oslo",
+		CountryPart: "Oslo",
 	}
 
 	newLocation, err := db.CreateLocation(location)
 
 	if err != nil {
 		t.Failed()
+	}
+
+	// Test if we can store a exact similar location without
+	_, err = db.CreateLocation(location2)
+
+	if err != nil {
+		t.Fatalf("Failed to store with existing countryPart: %v", err)
 	}
 
 	assert.Equal(t, newLocation.Description, location.Description)
@@ -117,6 +139,25 @@ func TestLocationCycle(t *testing.T) {
 
 	if err != nil {
 		t.Fatalf("Unable to update location: %v", err)
+	}
+
+	// Assert that we have actually updated the location
+	assert.Assert(t, updated.Longitude != location.Longitude)
+
+	searchResult, err := db.LocationSearchByName("gj")
+
+	if err != nil {
+		t.Fatalf("Unable to search for locations: %v", err)
+	}
+
+	// We should have one search-result from the database
+	assert.Assert(t, 0 < len(searchResult))
+
+	// Try deletion
+	err = db.DeleteLocation(newLocation.ID)
+
+	if err != nil {
+		t.Fatalf("Cannot delete a location: %v", err)
 	}
 
 }

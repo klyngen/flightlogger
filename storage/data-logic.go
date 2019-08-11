@@ -2,6 +2,8 @@ package storage
 
 import (
 	"fmt"
+	"log"
+	"strings"
 
 	"github.com/jinzhu/gorm"
 	// This import is needed in order to utilize MySql
@@ -18,7 +20,9 @@ type OrmDatabase struct {
 // MigrateDatabase - migrates the database
 func (d *OrmDatabase) MigrateDatabase() error {
 	// Migrate location first
-	err := d.db.AutoMigrate(&DbFileReference{}).Error
+
+	err := d.db.AutoMigrate(&DbCountryPart{}).Error
+	err = d.db.AutoMigrate(&DbFileReference{}).Error
 	err = d.db.AutoMigrate(&DbCoordinates{}).Error
 	err = d.db.AutoMigrate(&DbLocation{}).Error
 
@@ -65,7 +69,8 @@ func (d *OrmDatabase) MigrateDatabase() error {
 	}
 
 	err = d.db.Model(&DbCredentials{}).AddForeignKey("user_id", "db_users(id)", "CASCADE", "CASCADE").Error
-	err = d.db.Model(&DbLocation{}).AddForeignKey("coordinates_referer", "db_coordinates(id)", "CASCADE", "CASCADE").Error
+	err = d.db.Model(&DbLocation{}).AddForeignKey("countrypart_referer", "db_countryparts(id)", "SET NULL", "SET NULL").Error
+	err = d.db.Model(&DbLocation{}).AddForeignKey("coordinates_referer", "db_coordinates(id)", "SET NULL", "SET NULL").Error
 
 	if err != nil {
 		return errors.Wrap(err, "Unable to establich foreign keys")
@@ -206,8 +211,12 @@ func (d *OrmDatabase) CreateLocation(location common.Location) (common.Location,
 		return location, errors.Wrap(err, "Unable to store coordinates")
 	}
 
+	partID := d.resolveCountryPart(mappedLocation.CountryPart)
+
 	// Make it possible to resolve the foreign key later
 	mappedLocation.CoordinatesReferer = mappedLocation.Coordinates.ID
+	mappedLocation.CountrypartReferer = partID
+	// Then store the countrypart, if it is not empty
 
 	err = d.db.Create(&mappedLocation).Error
 
@@ -218,20 +227,119 @@ func (d *OrmDatabase) CreateLocation(location common.Location) (common.Location,
 	return demapLocation(mappedLocation), nil
 }
 
+// creates a countrypart if needed, or it will return an existing to prevent duplicates
+func (d *OrmDatabase) resolveCountryPart(part DbCountryPart) uint {
+	// If the part is valid
+	if !part.isEmpty() {
+
+		// See if we have such a part already
+		comboID := d.getCountryPart(part)
+
+		// If not create one
+		if comboID == 0 {
+			err := d.db.Create(&part).Error
+
+			if err != nil {
+				return 0
+			}
+
+			return part.ID
+		}
+		// return the part we got
+		return comboID
+	}
+	return 0
+}
+
+// The reason for this not being used
+func (d *OrmDatabase) getCountryPart(part DbCountryPart) uint {
+	var dbPart DbCountryPart
+	err := d.db.Where("area_name = ? AND postal_code = ? AND country_part = ?", part.AreaName, part.PostalCode, part.CountryPart).First(&dbPart).Error
+
+	if err != nil {
+		return 0
+	}
+
+	return dbPart.ID
+}
+
+// UpdateLocation updates the location and if needed its CountryPart and coordinates
 func (d *OrmDatabase) UpdateLocation(ID uint, location common.Location) (common.Location, error) {
+	var existingLocation DbLocation
 
+	d.db.First(&existingLocation, ID)
+
+	newCountryPart := DbCountryPart{
+		AreaName:    location.AreaName,
+		PostalCode:  location.PostalCode,
+		CountryPart: location.CountryPart,
+	}
+
+	// resolve the country part
+	partID := d.resolveCountryPart(newCountryPart)
+
+	var coordinates DbCoordinates
+
+	// set the coordinates for the location
+	err := d.db.Model(&existingLocation).Related(&coordinates, "Coordinates").Error
+
+	if err != nil { // The coordinates could not be found
+		log.Printf("Unable to find the coordinates: %v", err)
+		return location, err
+	} else {
+		coordinates.Longitude = existingLocation.Coordinates.Longitude
+		coordinates.Lattitude = existingLocation.Coordinates.Lattitude
+	}
+
+	// A countrypart can change. The coordinates object will never be replaced once it exists
+	existingLocation.CountrypartReferer = partID
+
+	return demapLocation(existingLocation), errors.Wrap(d.db.Save(&existingLocation).Error, "Unable to update a user")
 }
 
-func (d *OrmDatabase) DeleteLocation(ID int) error {
-	panic("not implemented")
+// DeleteLocation - softDeletes a location
+func (d *OrmDatabase) DeleteLocation(ID uint) error {
+
+	var loc DbLocation
+
+	err := errors.Wrap(d.db.First(&loc, ID).Error, "Unable to get location")
+
+	log.Println(loc)
+
+	loc.ID = ID
+
+	if err != nil {
+		return errors.Wrap(err, "Cannot delete a user we cannot find")
+	}
+
+	return d.db.Delete(&loc).Error
 }
 
+// LocationSearchByName finds relevant locations based on user input
 func (d *OrmDatabase) LocationSearchByName(name string) ([]common.Location, error) {
-	panic("not implemented")
+	var locations []DbLocation
+
+	// Find results by name
+	err := d.db.Where("name Like ?", strings.ToLower(name)+"%").Find(&locations).Error
+
+	if err != nil {
+		return nil, errors.Wrap(err, "Unable to find locations")
+	}
+
+	return demapLocations(locations), nil
 }
 
-func (d *OrmDatabase) GetLocation(ID int) (common.Location, error) {
-	panic("not implemented")
+// GetLocation - should get a location and its sub-entities
+func (d *OrmDatabase) GetLocation(ID uint) (common.Location, error) {
+	var loc DbLocation
+
+	err := errors.Wrap(d.db.First(&loc, ID).Error, "Unable to get location")
+
+	if err != nil {
+		return demapLocation(loc), err
+	}
+
+	return demapLocation(loc), nil
 }
 
 // UserGroup CRUD and search

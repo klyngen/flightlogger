@@ -66,10 +66,21 @@ type DbCoordinates struct {
 type DbLocation struct {
 	gorm.Model
 	Coordinates        DbCoordinates `gorm:"foreignkey:CoordinatesReferer"`
+	CountryPart        DbCountryPart `gorm:"foreignkey:CountrypartReferer"`
+	CountrypartReferer uint
 	CoordinatesReferer uint
 	Name               string
 	Description        string
 	Elevation          int
+}
+
+// DbCountryPart - describes the part of the country example Lillehammer, Oppland 2620
+// the primary key is described by a unique combination of the three parameters
+type DbCountryPart struct {
+	gorm.Model
+	AreaName    string `gorm:"primary_key"`
+	PostalCode  string `gorm:"primary_key"`
+	CountryPart string `gorm:"primary_key"`
 }
 
 // DbStartSite - describes a start sight for flight
@@ -159,4 +170,14 @@ type DbTakeoffType struct {
 type DbFlightType struct {
 	gorm.Model
 	Name string
+}
+
+// ################# MODEL HELPER FUNCTIONS #########################################
+
+// IsEmpty returns true if no parameter has a value
+func (cp *DbCountryPart) isEmpty() bool {
+	if len(cp.AreaName) == 0 && len(cp.CountryPart) == 0 && len(cp.PostalCode) == 0 {
+		return true
+	}
+	return false
 }
