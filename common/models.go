@@ -63,12 +63,11 @@ type Location struct {
 
 // StartSite - describes a start sight for flight
 type StartSite struct {
-	ID          uint
-	Name        string
-	Description string
-	Location    Location
-	Waypoints   []Waypoint
-	Difficulty  int
+	ID         uint
+	Name       string
+	Location   Location
+	Waypoints  []Waypoint
+	Difficulty int
 }
 
 // Waypoint - describes a start sight for flight

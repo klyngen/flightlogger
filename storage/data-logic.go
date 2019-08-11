@@ -342,6 +342,21 @@ func (d *OrmDatabase) GetLocation(ID uint) (common.Location, error) {
 	return demapLocation(loc), nil
 }
 
+// CreateWayPoint creates a waypoint
+func (d *OrmDatabase) CreateWayPoint(point common.Waypoint) (common.Waypoint, error) {
+	panic("not implemented")
+}
+
+// UpdateWayPoint soft-deletes the waypoint
+func (d *OrmDatabase) UpdateWayPoint(ID uint, point common.Waypoint) (common.Waypoint, error) {
+	panic("not implemented")
+}
+
+// DeleteWaypoint
+func (d *OrmDatabase) DeleteWayPoint(ID uint) error {
+	panic("not implemented")
+}
+
 // UserGroup CRUD and search
 func (d *OrmDatabase) CreateUserGroup(userGroup common.UserGroup, scopes []int) (common.UserGroup, error) {
 	panic("not implemented")
@@ -387,6 +402,7 @@ func (d *OrmDatabase) UpdateFlight(ID int, flight common.Flight) (common.Flight,
 
 func (d *OrmDatabase) DeleteFlight(ID int) error {
 	panic("not implemented")
+
 }
 
 func (d *OrmDatabase) GetAllFlights(limit int, page int) ([]common.Flight, error) {
@@ -452,11 +468,11 @@ func (d *OrmDatabase) CreateStartSite(site common.StartSite) (common.StartSite, 
 	panic("not implemented")
 }
 
-func (d *OrmDatabase) UpdateStartSite(ID int, site common.StartSite) (common.StartSite, error) {
+func (d *OrmDatabase) UpdateStartSite(ID uint, site common.StartSite) (common.StartSite, error) {
 	panic("not implemented")
 }
 
-func (d *OrmDatabase) DeleteStartSite(ID int) error {
+func (d *OrmDatabase) DeleteStartSite(ID uint) error {
 	panic("not implemented")
 }
 

@@ -86,10 +86,9 @@ type DbCountryPart struct {
 // DbStartSite - describes a start sight for flight
 type DbStartSite struct {
 	gorm.Model
-	Description string
-	Waypoints   []DbWaypoint
-	Location    DbLocation
-	Difficulty  int
+	Waypoints  []DbWaypoint
+	Location   DbLocation
+	Difficulty int
 }
 
 // DbWaypoint - describes a start sight for flight

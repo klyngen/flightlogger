@@ -57,11 +57,15 @@ type FlightLogDatabase interface {
 
 	// StartSite
 	CreateStartSite(site StartSite) (StartSite, error)
-	UpdateStartSite(ID int, site StartSite) (StartSite, error)
-	DeleteStartSite(ID int) error
+	UpdateStartSite(ID uint, site StartSite) (StartSite, error)
+	DeleteStartSite(ID uint) error
 	GetStartStartSiteByName(name string) ([]StartSite, error)
 	GetStartSiteByDifficulty(level int) ([]StartSite, error)
 	GetStartSite(ID int) (StartSite, error)
 	GetAllStartSites(limit int, page int) ([]StartSite, error)
 	GetSiteIncidents(siteID uint) ([]Incident, error)
+
+	CreateWayPoint(point Waypoint) (Waypoint, error)
+	UpdateWayPoint(ID uint, point Waypoint) (Waypoint, error)
+	DeleteWayPoint(ID uint) error
 }

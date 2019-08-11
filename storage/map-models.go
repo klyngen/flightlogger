@@ -164,10 +164,9 @@ func mapStartsite(site common.StartSite) DbStartSite {
 		Model: gorm.Model{
 			ID: site.ID,
 		},
-		Description: site.Description,
-		Difficulty:  site.Difficulty,
-		Location:    mapLocation(site.Location),
-		Waypoints:   mapWaypoints(site.Waypoints),
+		Difficulty: site.Difficulty,
+		Location:   mapLocation(site.Location),
+		Waypoints:  mapWaypoints(site.Waypoints),
 	}
 }
 
@@ -404,11 +403,10 @@ func demapFileReferences(file []DbFileReference) []common.FileReference {
 
 func demapStartSite(site DbStartSite) common.StartSite {
 	return common.StartSite{
-		Difficulty:  site.Difficulty,
-		Description: site.Description,
-		ID:          site.ID,
-		Location:    demapLocation(site.Location),
-		Waypoints:   demapWaypoints(site.Waypoints),
+		Difficulty: site.Difficulty,
+		ID:         site.ID,
+		Location:   demapLocation(site.Location),
+		Waypoints:  demapWaypoints(site.Waypoints),
 	}
 }
 

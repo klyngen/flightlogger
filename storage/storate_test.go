@@ -93,7 +93,6 @@ func TestUserLifeCycle(t *testing.T) {
 
 func TestLocationCycle(t *testing.T) {
 	db := SetupDbTest()
-
 	location := common.Location{
 		Name:        "Gjelle",
 		Lattitude:   61.02,
@@ -160,4 +159,131 @@ func TestLocationCycle(t *testing.T) {
 		t.Fatalf("Cannot delete a location: %v", err)
 	}
 
+}
+
+func TestStartSiteWaypointCycle(t *testing.T) {
+	db := SetupDbTest()
+	location := common.Location{
+		Name:        "Gjelle",
+		Lattitude:   61.02,
+		Longitude:   61.5,
+		Description: "Small town in the west of norway. Voss is known for its love for extreme sports",
+		PostalCode:  "1",
+		AreaName:    "Oslo",
+		CountryPart: "Oslo",
+	}
+
+	wps := createWayPoints(t, db)
+
+	startSite := common.StartSite{
+		Difficulty: 5,
+		Location:   location,
+		Waypoints: []common.Waypoint{
+			common.Waypoint{ID: wps[0]},
+		},
+	}
+
+	newStartSite, err := db.CreateStartSite(startSite)
+
+	// Verify mapping
+	assert.Assert(t, newStartSite.ID != 0)
+	assert.Equal(t, newStartSite.Difficulty, startSite.Difficulty)
+	assert.Equal(t, newStartSite.Description, startSite.Description)
+
+	// We should be able to replace one waypoint with another
+	newStartSite.Waypoints = []common.Waypoint{common.Waypoint{ID: wps[1]}}
+
+	updatedSite, err := db.UpdateStartSite(newStartSite.ID, newStartSite)
+
+	// See if the correct waypoint is in the correct place
+	assert.Assert(t, updatedSite.Waypoints[0].ID != wps[0])
+	// See that we only have one waypoint
+	assert.Equal(t, 1, len(updatedSite.Waypoints))
+
+	updateWaypoints(wps, t, db)
+
+	// Cleanup
+	err = deleteWaypoints([]uint{wps[0], wps[1]}, t, db)
+
+	if err != nil {
+		t.Fatalf("Could not clean up waypoints %v", err)
+	}
+
+}
+
+func createWayPoints(t *testing.T, database *OrmDatabase) []uint {
+	location := common.Location{
+		Name:        "Gjelle landing",
+		Lattitude:   61.02,
+		Longitude:   61.5,
+		Description: "Landing ved Gjelle. Følg vannet",
+		PostalCode:  "1",
+		AreaName:    "Oslo",
+		CountryPart: "Oslo",
+	}
+
+	location2 := common.Location{
+		Name:        "Gjelle landing2",
+		Lattitude:   61.02,
+		Longitude:   61.5,
+		Description: "Landing på feil side av høyspentlinjen",
+		PostalCode:  "1",
+		AreaName:    "Oslo",
+		CountryPart: "Oslo",
+	}
+
+	dbLocation, err := database.CreateLocation(location)
+	dbLocation2, err := database.CreateLocation(location2)
+
+	if err != nil {
+		t.Fatalf("Unable to make locations for waypoints... %v", err)
+	}
+
+	wp1 := common.Waypoint{
+		Difficulty: 5,
+		Location:   dbLocation,
+	}
+
+	wp2 := common.Waypoint{
+		Difficulty: 5,
+		Location:   dbLocation2,
+	}
+
+	waypoint1, err := database.CreateWayPoint(wp1)
+	waypoint2, err := database.CreateWayPoint(wp2)
+
+	if err != nil {
+		t.Fatalf("Unable to store waypoints %v", err)
+	}
+
+	return []uint{waypoint1.ID, waypoint2.ID}
+}
+
+func updateWaypoints(waypoints []uint, t *testing.T, d *OrmDatabase) error {
+	for _, p := range waypoints {
+		var wp DbWaypoint
+		d.db.First(&wp, p)
+
+		mappedPoint := demapWaypoint(wp)
+		// It is suddenly really easy to land here
+		wp.Difficulty = 1
+
+		_, err := d.UpdateWayPoint(p, mappedPoint)
+
+		if err != nil {
+			t.Fatalf("Unable to delete waypoints %v", err)
+		}
+	}
+	return nil
+}
+
+func deleteWaypoints(waypoints []uint, t *testing.T, d *OrmDatabase) error {
+	for _, p := range waypoints {
+		err := d.DeleteWayPoint(p)
+
+		if err != nil {
+			t.Fatalf("Unable to delete waypoints %v", err)
+		}
+	}
+	return nil
 }
