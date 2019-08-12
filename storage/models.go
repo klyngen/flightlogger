@@ -86,16 +86,18 @@ type DbCountryPart struct {
 // DbStartSite - describes a start sight for flight
 type DbStartSite struct {
 	gorm.Model
-	Waypoints  []DbWaypoint
-	Location   DbLocation
-	Difficulty int
+	Waypoints       []DbWaypoint
+	Location        DbLocation
+	LocationReferer uint `gorm:"foreignkey:LocationReferer"`
+	Difficulty      int
 }
 
 // DbWaypoint - describes a start sight for flight
 type DbWaypoint struct {
 	gorm.Model
-	Difficulty int
-	Location   DbLocation
+	Difficulty      int
+	LocationReferer uint `gorm:"foreignkey:LocationReferer"`
+	Location        DbLocation
 }
 
 // DbFlight - describes a flight

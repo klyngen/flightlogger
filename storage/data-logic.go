@@ -68,6 +68,7 @@ func (d *OrmDatabase) MigrateDatabase() error {
 		return errors.Wrap(err, "Unable to migrate user-entities")
 	}
 
+	// Add foreign key to location and User-ID
 	err = d.db.Model(&DbCredentials{}).AddForeignKey("user_id", "db_users(id)", "CASCADE", "CASCADE").Error
 	err = d.db.Model(&DbLocation{}).AddForeignKey("countrypart_referer", "db_countryparts(id)", "SET NULL", "SET NULL").Error
 	err = d.db.Model(&DbLocation{}).AddForeignKey("coordinates_referer", "db_coordinates(id)", "SET NULL", "SET NULL").Error
@@ -75,6 +76,14 @@ func (d *OrmDatabase) MigrateDatabase() error {
 	if err != nil {
 		return errors.Wrap(err, "Unable to establich foreign keys")
 	}
+
+	err = d.db.Model(&DbWaypoint{}).AddForeignKey("location_referer", "db_locations(id)", "SET NULL", "SET NULL").Error
+	err = d.db.Model(&DbStartSite{}).AddForeignKey("location_referer", "db_locations(id)", "SET NULL", "SET NULL").Error
+
+	if err != nil {
+		return errors.Wrap(err, "Unable to establich foreign keys")
+	}
+
 	return errors.Wrap(err, "Unable to migrate the database")
 }
 
@@ -344,17 +353,63 @@ func (d *OrmDatabase) GetLocation(ID uint) (common.Location, error) {
 
 // CreateWayPoint creates a waypoint
 func (d *OrmDatabase) CreateWayPoint(point common.Waypoint) (common.Waypoint, error) {
-	panic("not implemented")
+	mappedWaypoint := mapWayPoint(point)
+
+	var location DbLocation
+
+	err := d.db.First(location, point.Location.ID).Error
+
+	// The location needs to exist
+	if err != nil {
+		return point, errors.Wrap(err, "Could not find a location to bind to")
+	}
+
+	err = d.db.Create(&mappedWaypoint).Error
+
+	if err != nil {
+		return point, errors.Wrap(err, "Unable to create the waypoint")
+	}
+
+	return demapWaypoint(mappedWaypoint), nil
 }
 
 // UpdateWayPoint soft-deletes the waypoint
 func (d *OrmDatabase) UpdateWayPoint(ID uint, point common.Waypoint) (common.Waypoint, error) {
-	panic("not implemented")
+	var p DbWaypoint
+
+	err := d.db.First(&p, ID).Error
+
+	if err != nil {
+		return point, errors.Wrap(err, "Could not find the referenced waypoint")
+	}
+
+	mappedPoint := mapWayPoint(point)
+
+	mappedPoint.ID = p.ID
+
+	err = d.db.Save(&mappedPoint).Error
+
+	if err != nil {
+		return point, errors.Wrap(err, "Could not update the given endpoint")
+	}
+
+	return demapWaypoint(mappedPoint), nil
 }
 
-// DeleteWaypoint
+// DeleteWayPoint - soft-deletes a waypoint
 func (d *OrmDatabase) DeleteWayPoint(ID uint) error {
-	panic("not implemented")
+	var w DbWaypoint
+
+	err := d.db.First(&w, ID).Error
+
+	if err != nil {
+		errors.Wrap(err, "Unable to find the waypoint")
+		return err
+	}
+
+	err = d.db.Delete(&w).Error
+
+	return err
 }
 
 // UserGroup CRUD and search

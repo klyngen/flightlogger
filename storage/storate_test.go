@@ -232,6 +232,17 @@ func createWayPoints(t *testing.T, database *OrmDatabase) []uint {
 		CountryPart: "Oslo",
 	}
 
+	// Is not stored in the database
+	location3 := common.Location{
+		Name:        "Not valid",
+		Lattitude:   0.0,
+		Longitude:   0.0,
+		Description: "Landing på feil side av høyspentlinjen",
+		PostalCode:  "1",
+		AreaName:    "Oslo",
+		CountryPart: "Oslo",
+	}
+
 	dbLocation, err := database.CreateLocation(location)
 	dbLocation2, err := database.CreateLocation(location2)
 
@@ -249,11 +260,23 @@ func createWayPoints(t *testing.T, database *OrmDatabase) []uint {
 		Location:   dbLocation2,
 	}
 
+	wp3 := common.Waypoint{
+		Difficulty: 1,
+		Location:   wp3,
+	}
+
 	waypoint1, err := database.CreateWayPoint(wp1)
 	waypoint2, err := database.CreateWayPoint(wp2)
 
 	if err != nil {
 		t.Fatalf("Unable to store waypoints %v", err)
+	}
+
+	_, err := database.CreateWayPoint(wp3)
+
+	// Then the waypoint was created without a valid location
+	if err == nil {
+		t.Fatalf("Waypoint created without location %v", err)
 	}
 
 	return []uint{waypoint1.ID, waypoint2.ID}
