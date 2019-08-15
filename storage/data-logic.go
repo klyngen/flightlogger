@@ -357,12 +357,14 @@ func (d *OrmDatabase) CreateWayPoint(point common.Waypoint) (common.Waypoint, er
 
 	var location DbLocation
 
-	err := d.db.First(location, point.Location.ID).Error
+	err := d.db.First(&location, point.Location.ID).Error
 
 	// The location needs to exist
 	if err != nil {
 		return point, errors.Wrap(err, "Could not find a location to bind to")
 	}
+
+	mappedWaypoint.LocationReferer = point.Location.ID
 
 	err = d.db.Create(&mappedWaypoint).Error
 
@@ -386,6 +388,8 @@ func (d *OrmDatabase) UpdateWayPoint(ID uint, point common.Waypoint) (common.Way
 	mappedPoint := mapWayPoint(point)
 
 	mappedPoint.ID = p.ID
+
+	mappedPoint.LocationReferer = p.LocationReferer
 
 	err = d.db.Save(&mappedPoint).Error
 
@@ -518,17 +522,105 @@ func (d *OrmDatabase) GetWingSearchByName(name string) ([]common.Wing, error) {
 	panic("not implemented")
 }
 
-// StartSite
+// CreateStartSite - creates a startsite and checks if we have a location and etc
 func (d *OrmDatabase) CreateStartSite(site common.StartSite) (common.StartSite, error) {
-	panic("not implemented")
+	mappedStartSite := mapStartsite(site)
+
+	var location DbLocation
+	var waypoints []DbWaypoint
+
+	err := d.db.First(&location, site.Location.ID).Error
+
+	// The location needs to exist
+	if err != nil {
+		return site, errors.Wrap(err, "Could not find a location to bind to")
+	}
+
+	mappedStartSite.LocationReferer = site.Location.ID
+
+	wpIds := make([]uint, len(site.Waypoints))
+	for i, w := range site.Waypoints {
+		wpIds[i] = w.ID
+	}
+
+	// Get a selection of the existing waypoints from the database
+	err = d.db.Where("id IN (?)", wpIds).Find(&waypoints).Error
+
+	if err != nil {
+		mappedStartSite.Waypoints = nil
+
+	} else {
+		mappedStartSite.Waypoints = waypoints
+	}
+
+	err = d.db.Create(&mappedStartSite).Error
+
+	if err != nil {
+		return site, errors.Wrap(err, "Unable to create the waypoint")
+	}
+
+	return demapStartSite(mappedStartSite), nil
+
 }
 
+// UpdateStartSite - updates a start site and reconnects any waypoints etc
 func (d *OrmDatabase) UpdateStartSite(ID uint, site common.StartSite) (common.StartSite, error) {
-	panic("not implemented")
+	mappedStartSite := mapStartsite(site)
+
+	var location DbLocation
+	var waypoints []DbWaypoint
+
+	err := d.db.First(&location, site.Location.ID).Error
+
+	// The location needs to exist
+	if err != nil {
+		return site, errors.Wrap(err, "Could not find a location to bind to")
+	}
+
+	mappedStartSite.LocationReferer = site.Location.ID
+
+	wpIds := make([]uint, len(site.Waypoints))
+	for i, w := range site.Waypoints {
+		wpIds[i] = w.ID
+	}
+
+	// Get a selection of the existing waypoints from the database
+	err = d.db.Where("id IN (?)", wpIds).Find(&waypoints).Error
+
+	if err != nil {
+		mappedStartSite.Waypoints = nil
+
+	} else {
+		mappedStartSite.Waypoints = waypoints
+	}
+
+	err = d.db.Save(&mappedStartSite).Error
+
+	if err != nil {
+		return site, errors.Wrap(err, "Unable to update the startsite")
+	}
+
+	return demapStartSite(mappedStartSite), nil
 }
 
+// DeleteStartSite soft deletes the startsite
 func (d *OrmDatabase) DeleteStartSite(ID uint) error {
-	panic("not implemented")
+	var startsite DbStartSite
+
+	err := d.db.First(&startsite, ID).Error
+
+	if err != nil {
+		return errors.Wrap(err, "Unable to find the item marked for deletion")
+	}
+
+	// Soft delete
+	err = d.db.Delete(&startsite).Error
+
+	if err != nil {
+		return errors.Wrap(err, "Unable to delete the item")
+	}
+
+	return nil
 }
 
 func (d *OrmDatabase) GetStartStartSiteByName(name string) ([]common.StartSite, error) {
@@ -539,12 +631,24 @@ func (d *OrmDatabase) GetStartSiteByDifficulty(level int) ([]common.StartSite, e
 	panic("not implemented")
 }
 
+// GetStartSite - gets a hold of a specified startsite
 func (d *OrmDatabase) GetStartSite(ID int) (common.StartSite, error) {
-	panic("not implemented")
+	var startsite DbStartSite
+
+	err := d.db.First(&startsite, ID).Error
+
+	if err != nil {
+		return demapStartSite(startsite), errors.Wrap(err, "Could not find the startsite")
+	}
+
+	return demapStartSite(startsite), nil
 }
 
+// GetAllStartSites gets paged results for all of our users
 func (d *OrmDatabase) GetAllStartSites(limit int, page int) ([]common.StartSite, error) {
-	panic("not implemented")
+	var sites []DbStartSite
+	d.db.Limit(limit).Offset((page - 1) * limit).Find(&sites)
+	return demapStartSites(sites), nil
 }
 
 func (d *OrmDatabase) GetSiteIncidents(siteID uint) ([]common.Incident, error) {

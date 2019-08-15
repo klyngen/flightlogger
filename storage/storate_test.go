@@ -173,11 +173,13 @@ func TestStartSiteWaypointCycle(t *testing.T) {
 		CountryPart: "Oslo",
 	}
 
+	loc, err := db.CreateLocation(location)
+
 	wps := createWayPoints(t, db)
 
 	startSite := common.StartSite{
 		Difficulty: 5,
-		Location:   location,
+		Location:   loc,
 		Waypoints: []common.Waypoint{
 			common.Waypoint{ID: wps[0]},
 		},
@@ -185,10 +187,15 @@ func TestStartSiteWaypointCycle(t *testing.T) {
 
 	newStartSite, err := db.CreateStartSite(startSite)
 
+	if err != nil {
+		t.Fatalf("Unable to create startSite %v", err)
+	}
 	// Verify mapping
 	assert.Assert(t, newStartSite.ID != 0)
 	assert.Equal(t, newStartSite.Difficulty, startSite.Difficulty)
 	assert.Equal(t, newStartSite.Description, startSite.Description)
+	// Do we still have one waypoint?
+	assert.Equal(t, 1, len(newStartSite.Waypoints))
 
 	// We should be able to replace one waypoint with another
 	newStartSite.Waypoints = []common.Waypoint{common.Waypoint{ID: wps[1]}}
@@ -262,7 +269,7 @@ func createWayPoints(t *testing.T, database *OrmDatabase) []uint {
 
 	wp3 := common.Waypoint{
 		Difficulty: 1,
-		Location:   wp3,
+		Location:   location3,
 	}
 
 	waypoint1, err := database.CreateWayPoint(wp1)
@@ -272,7 +279,7 @@ func createWayPoints(t *testing.T, database *OrmDatabase) []uint {
 		t.Fatalf("Unable to store waypoints %v", err)
 	}
 
-	_, err := database.CreateWayPoint(wp3)
+	_, err = database.CreateWayPoint(wp3)
 
 	// Then the waypoint was created without a valid location
 	if err == nil {

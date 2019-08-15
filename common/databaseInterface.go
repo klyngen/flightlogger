@@ -60,7 +60,6 @@ type FlightLogDatabase interface {
 	UpdateStartSite(ID uint, site StartSite) (StartSite, error)
 	DeleteStartSite(ID uint) error
 	GetStartStartSiteByName(name string) ([]StartSite, error)
-	GetStartSiteByDifficulty(level int) ([]StartSite, error)
 	GetStartSite(ID int) (StartSite, error)
 	GetAllStartSites(limit int, page int) ([]StartSite, error)
 	GetSiteIncidents(siteID uint) ([]Incident, error)

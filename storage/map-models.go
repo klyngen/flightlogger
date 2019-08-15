@@ -410,6 +410,16 @@ func demapStartSite(site DbStartSite) common.StartSite {
 	}
 }
 
+func demapStartSites(sites []DbStartSite) []common.StartSite {
+	newSites := make([]common.StartSite, len(sites))
+
+	for i, s := range sites {
+		newSites[i] = demapStartSite(s)
+	}
+
+	return newSites
+}
+
 func demapWaypoint(point DbWaypoint) common.Waypoint {
 	return common.Waypoint{
 		Difficulty: point.Difficulty,

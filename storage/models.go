@@ -17,7 +17,7 @@ type DbUser struct {
 	FirstName string
 	LastName  string
 	Email     string        `gorm:"type:varchar(100);unique_index"`
-	Clubs     []DbClub      `gorm:"many2many:user_scopes;"`
+	Clubs     []DbClub      `gorm:"many2many:user_clubs;"`
 	Scopes    []DbUserScope `gorm:"many2many:user_scopes;"`
 	Groups    []DbUserGroup `gorm:"many2many:user_group;"`
 	Wings     []DbWing      `gorm:"many2many:user_wing;"`
@@ -86,7 +86,7 @@ type DbCountryPart struct {
 // DbStartSite - describes a start sight for flight
 type DbStartSite struct {
 	gorm.Model
-	Waypoints       []DbWaypoint
+	Waypoints       []DbWaypoint `gorm:"many2many:startsite_waypoints;"`
 	Location        DbLocation
 	LocationReferer uint `gorm:"foreignkey:LocationReferer"`
 	Difficulty      int
