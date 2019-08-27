@@ -450,25 +450,29 @@ func (d *OrmDatabase) DeleteFile(ID int) error {
 	panic("not implemented")
 }
 
-// Flight CRUD
+// CreateFlight - creates a new flight
 func (d *OrmDatabase) CreateFlight(flight common.Flight) (common.Flight, error) {
 	panic("not implemented")
 }
 
-func (d *OrmDatabase) UpdateFlight(ID int, flight common.Flight) (common.Flight, error) {
+// UpdateFlight - updates flight stats
+func (d *OrmDatabase) UpdateFlight(ID uint, flight common.Flight) (common.Flight, error) {
 	panic("not implemented")
 }
 
-func (d *OrmDatabase) DeleteFlight(ID int) error {
+// DeleteFlight - either soft-delete or hard delete the flight
+func (d *OrmDatabase) DeleteFlight(ID uint, soft bool) error {
 	panic("not implemented")
 
 }
 
+// GetAllFlights - fetches a paged result for the flights
 func (d *OrmDatabase) GetAllFlights(limit int, page int) ([]common.Flight, error) {
 	panic("not implemented")
 }
 
-func (d *OrmDatabase) GetFlight(ID int) (common.Flight, error) {
+// GetFlight - get a flight by its ID
+func (d *OrmDatabase) GetFlight(ID uint) (common.Flight, error) {
 	panic("not implemented")
 }
 

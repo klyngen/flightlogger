@@ -317,3 +317,21 @@ func deleteWaypoints(waypoints []uint, t *testing.T, d *OrmDatabase) error {
 	}
 	return nil
 }
+
+func TestFlightCrud(t *testing.T) {
+	db := SetupDbTest()
+	user := common.User{
+		Username:     "klyngen",
+		LastName:     "klingenberg",
+		FirstName:    "Martin",
+		Email:        "martin@klingenberg.as",
+		PasswordHash: []byte("somehash"),
+		PasswordSalt: []byte("something salty"),
+	}
+
+	storedUser, err := db.CreateUser(user)
+
+	flight := common.Flight{}
+
+	db.DeleteUser(storedUser.ID)
+}

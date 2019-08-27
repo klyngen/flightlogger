@@ -105,7 +105,7 @@ type DbFlight struct {
 	gorm.Model
 	Startsite   DbStartSite `gorm:"association_foreignkey:Refer"`
 	User        DbUser      `gorm:"association_foreignkey:Refer"`
-	Waypoint    DbWaypoint  `gorm:"association_foreignkey:Refer"`
+	Waypoint    DbWaypoint  `gorm:"many2many:flight_waypoints;"`
 	Duration    int
 	Notes       string
 	Distance    int
