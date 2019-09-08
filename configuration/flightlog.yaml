@@ -1,0 +1,7 @@
+serverport: "61225"
+database:
+  hostname: "hostname"
+  password: "password"
+  port: "port"
+  username: "username"
+  database: "database"

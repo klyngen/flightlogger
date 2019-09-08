@@ -10,6 +10,19 @@
   version = "v1.4.1"
 
 [[projects]]
+  digest = "1:2e3c336fc7fde5c984d2841455a658a6d626450b1754a854b3b32e7a8f49a07a"
+  name = "github.com/google/go-cmp"
+  packages = [
+    "cmp",
+    "cmp/internal/diff",
+    "cmp/internal/function",
+    "cmp/internal/value",
+  ]
+  pruneopts = "UT"
+  revision = "3af367b6b30c263d47e8895973edcca9a49cf029"
+  version = "v0.2.0"
+
+[[projects]]
   digest = "1:6d39be33a917111436132ff319562545899eaeca7039a1bfffd0cd0246990d78"
   name = "github.com/jinzhu/gorm"
   packages = [
@@ -29,14 +42,6 @@
   version = "v1.0.0"
 
 [[projects]]
-  branch = "master"
-  digest = "1:2e998f93e013cced304e92fb5be79fe50098a403102846259daf3c3e543f3f82"
-  name = "github.com/klyngen/flightlogger"
-  packages = ["common"]
-  pruneopts = "UT"
-  revision = "57e4b8b3465dbd711ec0e67ae9dca5253cb6ccba"
-
-[[projects]]
   digest = "1:cf31692c14422fa27c83a05292eb5cbe0fb2775972e8f1f8446a71549bd8980b"
   name = "github.com/pkg/errors"
   packages = ["."]
@@ -52,14 +57,28 @@
   revision = "b2f4a3cf3c67576a2ee09e1fe62656a5086ce880"
   version = "v1.6.1"
 
+[[projects]]
+  digest = "1:2ad5e4bbe42ffd64b10babe1ec1ac99d64122170cb2524326ad81708ebd0b9cc"
+  name = "gotest.tools"
+  packages = [
+    "assert",
+    "assert/cmp",
+    "internal/difflib",
+    "internal/format",
+    "internal/source",
+  ]
+  pruneopts = "UT"
+  revision = "1083505acf35a0bd8a696b26837e1fb3187a7a83"
+  version = "v2.3.0"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
     "github.com/jinzhu/gorm",
     "github.com/jinzhu/gorm/dialects/mysql",
-    "github.com/klyngen/flightlogger/common",
     "github.com/pkg/errors",
+    "gotest.tools/assert",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1
