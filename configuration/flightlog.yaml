@@ -1,4 +1,6 @@
 serverport: "61225"
+secret: "secret"
+
 database:
   hostname: "hostname"
   password: "password"

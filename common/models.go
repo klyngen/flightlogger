@@ -59,6 +59,9 @@ type Location struct {
 	Description string
 	Longitude   float64
 	Lattitude   float64
+	AreaName    string
+	PostalCode  string
+	CountryPart string
 }
 
 // StartSite - describes a start sight for flight

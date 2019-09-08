@@ -15,6 +15,7 @@ func TestConfigurationUnmarshalling(t *testing.T) {
 	config := GetConfiguration()
 
 	assert.Equal(t, "61225", config.Serverport)
+	assert.Equal(t, "secret", config.Secret)
 
 	assert.Equal(t, "hostname", config.DatabaseConfiguration.Hostname)
 	assert.Equal(t, "password", config.DatabaseConfiguration.Password)

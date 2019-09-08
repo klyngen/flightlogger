@@ -12,6 +12,7 @@ var configpaths = [...]string{"/etc/flightlogger", "$HOME/.flightlogger", "."}
 // ApplicationConfig contains the config parameters used for this excellent app
 type ApplicationConfig struct {
 	Serverport            string
+	Secret                string
 	DatabaseConfiguration DatabaseConfig `mapstructure:"database"`
 }
 

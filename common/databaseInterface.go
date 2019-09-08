@@ -15,10 +15,10 @@ type FlightLogDatabase interface {
 
 	// Location CRUD and search
 	CreateLocation(location Location) (Location, error)
-	UpdateLocation(ID int, location Location) (Location, error)
-	DeleteLocation(ID int) error
+	UpdateLocation(ID uint, location Location) (Location, error)
+	DeleteLocation(ID uint) error
 	LocationSearchByName(name string) ([]Location, error)
-	GetLocation(ID int) (Location, error)
+	GetLocation(ID uint) (Location, error)
 
 	// UserGroup CRUD and search
 	CreateUserGroup(userGroup UserGroup, scopes []int) (UserGroup, error)
