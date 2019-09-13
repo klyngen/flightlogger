@@ -7,6 +7,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/klyngen/flightlogger/common"
+	"github.com/klyngen/jsend"
 )
 
 type FlightLogApi struct {
@@ -16,7 +17,14 @@ type FlightLogApi struct {
 }
 
 func NewService(service common.FlightLogService, port string) FlightLogApi {
-	router := mux.NewRouter()
+	router := mux.NewRouter().PathPrefix("/api/protected").Subrouter()
+	unprotected := router.PathPrefix("/api/public").Subrouter()
+	// Mount authenticationRoutes
+	mountAuthenticationRoutes(unprotected)
+
+	// Jsendify the default handlers
+	router.NotFoundHandler = http.HandlerFunc(notFoundHandler)
+	router.MethodNotAllowedHandler = http.HandlerFunc(notAllowedHandler)
 
 	// Create the API
 	return FlightLogApi{service: service, router: router, port: port}
@@ -30,4 +38,12 @@ func (api *FlightLogApi) StartApi() {
 	}
 
 	log.Printf("Started FlightLogger on port: %s", api.port)
+}
+
+func notFoundHandler(w http.ResponseWriter, r *http.Request) {
+	jsend.FormatResponse(w, "No such endpoint. RTFM", jsend.NotFound)
+}
+
+func notAllowedHandler(w http.ResponseWriter, r *http.Request) {
+	jsend.FormatResponse(w, "Correct endpoint wrong method. RTFM", jsend.MethodNotAllowed)
 }
