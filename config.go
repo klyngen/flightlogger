@@ -4,8 +4,8 @@ secret: "secret"
 tokenexpiration: 3600
 
 database:
-  hostname: "hostname"
-  password: "password"
+  hostname: "localhost"
+  password: ""
   port: "port"
-  username: "username"
-  database: "database"
+  username: "root"
+  database: "Flightlog"

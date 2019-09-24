@@ -19,7 +19,6 @@ type DbUser struct {
 	Email     string        `gorm:"type:varchar(100);unique_index"`
 	Clubs     []DbClub      `gorm:"many2many:user_clubs;"`
 	Scopes    []DbUserScope `gorm:"many2many:user_scopes;"`
-	Claims    []DbUserClaims `gorm:"many2many:user_claims;"`
 	Groups    []DbUserGroup `gorm:"many2many:user_group;"`
 	Wings     []DbWing      `gorm:"many2many:user_wing;"`
 }
@@ -32,20 +31,13 @@ type DbCredentials struct {
 	PasswordSalt []byte
 }
 
-// DbUserScope - the possible scopes of a user - can also be used as claim
+// DbUserScope - the possible scopes of a user
 type DbUserScope struct {
 	gorm.Model
 	Key       string
 	Name      string
 	TimeStamp time.Time
 }
-
-// DbUserClaim - describes what custom claims we assign the user
-type DbUserClaim struct {
-	gorm.Model
-	Key       string
-	Name      string
-	TimeStamp time.Time
 
 // DbUserGroup - defines a set of scopes that can be applied to a user
 type DbUserGroup struct {

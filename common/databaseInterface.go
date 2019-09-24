@@ -3,68 +3,66 @@ package common
 // FlightLogDatabase - defines an interface to the data-layer
 type FlightLogDatabase interface {
 	// What all databases should do
-	MigrateDatabase() error
 	CreateConnection(username string, password string, database string, port string, hostname string) error
 
-	// User CRUD
-	CreateUser(user User) (User, error)
+	CreateUser(user *User) error
 	GetAllUsers(limit int, page int) ([]User, error)
-	GetUser(ID uint) (User, error)
-	UpdateUser(ID uint, user User) (User, error)
-	DeleteUser(ID uint) error
+	GetUser(ID string, user *User) error
+	GetUserByEmail(Email string, user *User) error
+	UpdateUser(ID string, user *User) error
+	DeleteUser(ID string) error
 
 	// Location CRUD and search
-	CreateLocation(location Location) (Location, error)
-	UpdateLocation(ID uint, location Location) (Location, error)
+	CreateLocation(location *Location) error
+	UpdateLocation(ID uint, location *Location) error
 	DeleteLocation(ID uint) error
-	LocationSearchByName(name string) ([]Location, error)
-	GetLocation(ID uint) (Location, error)
+	LocationSearchByName(name string, locations *Location) error
+	GetLocation(ID uint, location *Location) error
 
 	// UserGroup CRUD and search
-	CreateUserGroup(userGroup UserGroup, scopes []int) (UserGroup, error)
-	UpdateUserGroup(groupID int, userGroup UserGroup, scopes []int) (UserGroup, error)
-	GetAllUserGroups(limit int, page int) ([]UserGroup, error)
-	GetUserGroup(ID int) (UserGroup, error)
-	UserGroupSearchByName(name string) ([]UserGroup, error)
+	CreateUserGroup(userGroup *UserGroup, scopes []int) error
+	UpdateUserGroup(groupID uint, userGroup *UserGroup, permissions []int) error
+	GetAllUserGroups(limit int, page int, userGroups []UserGroup) error
+	GetUserGroup(ID uint, userGroup *UserGroup) error
+	UserGroupSearchByName(name string, userGroups []UserGroup) error
 
-	// FileCreation CRD
-	CreateFile(file FileReference) (FileReference, error)
-	GetFile(ID int) (FileReference, error)
-	DeleteFile(ID int) error
+	// FileCreation CRUD
+	CreateFile(file *FileReference) error
+	GetFile(ID uint, file *FileReference) error
+	DeleteFile(ID uint) error
 
 	// Flight CRUD
-	CreateFlight(flight Flight) (Flight, error)
-	UpdateFlight(ID uint, flight Flight) (Flight, error)
+	CreateFlight(flight *Flight) error
+	UpdateFlight(ID uint, flight *Flight) error
 	DeleteFlight(ID uint, soft bool) error
-	GetAllFlights(limit int, page int) ([]Flight, error)
-	GetFlight(ID uint) (Flight, error)
+	GetAllFlights(limit int, page int, flights []Flight) error
+	GetFlight(ID uint, flight *Flight) error
 
 	// FlightIncident CRUD and search
-	CreateFlightIncident(incident Incident) (Incident, error)
-	UpdateFlightIncident(ID int, Incident Incident) (Incident, error)
-	DeleteFlightIncident(ID int) error
-	GetFlightIncident(ID int) (Flight, error)
-	GetFlightIncidentByLevel(errorLevel int) ([]Flight, error)
-	GetFlightIncidents(limit int, page int) ([]Flight, error)
+	CreateFlightIncident(incident *Incident) error
+	UpdateFlightIncident(ID uint, incident *Incident) error
+	DeleteFlightIncident(ID uint) error
+	GetFlightIncident(ID uint, flight *Flight) error
+	GetFlightIncidentByLevel(errorLevel uint, flights []Flight) error
+	GetFlightIncidents(limit int, page int, flights []Flight) error
 
 	// Wing CRUD
-	CreateWing(wing Wing) (Wing, error)
-	UpdateWing(ID int, wing Wing) (Wing, error)
-	DeleteWing(ID int) error
-	GetWing(ID int) (Wing, error)
-	GetAllWings(limit int, page int) (Wing, error)
-	GetWingSearchByName(name string) ([]Wing, error)
+	CreateWing(wing *Wing) error
+	UpdateWing(ID uint, wing *Wing) error
+	DeleteWing(ID uint) error
+	GetWing(ID uint, wing *Wing) (Wing, error)
+	GetAllWings(limit uint, page uint, wing *Wing) error
+	GetWingSearchByName(name string, wings []Wing) error
 
 	// StartSite
-	CreateStartSite(site StartSite) (StartSite, error)
-	UpdateStartSite(ID uint, site StartSite) (StartSite, error)
+	CreateStartSite(site *StartSite) error
+	UpdateStartSite(ID uint, site *StartSite) error
 	DeleteStartSite(ID uint) error
 	GetStartStartSiteByName(name string) ([]StartSite, error)
-	GetStartSite(ID int) (StartSite, error)
-	GetAllStartSites(limit int, page int) ([]StartSite, error)
-	GetSiteIncidents(siteID uint) ([]Incident, error)
+	GetStartSite(ID uint, startSite *StartSite) error
+	GetAllStartSites(limit int, page int, startSites []StartSite) error
+	GetSiteIncidents(siteID uint, incidents []Incident) error
 
-	CreateWayPoint(point Waypoint) (Waypoint, error)
-	UpdateWayPoint(ID uint, point Waypoint) (Waypoint, error)
-	DeleteWayPoint(ID uint) error
+	CreateWayPoint(point *Waypoint) error
+	UpdateWayPoint(ID uint, point *Waypoint) error
 }

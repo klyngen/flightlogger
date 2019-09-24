@@ -13,6 +13,7 @@ var configpaths = [...]string{"/etc/flightlogger", "$HOME/.flightlogger", "."}
 type ApplicationConfig struct {
 	Serverport            string
 	Secret                string
+	Tokenexpiration       int
 	DatabaseConfiguration DatabaseConfig `mapstructure:"database"`
 }
 

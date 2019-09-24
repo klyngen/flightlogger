@@ -123,6 +123,16 @@ func (d *OrmDatabase) CreateUser(user common.User) (common.User, error) {
 	return demapUser(mappedUser), nil
 }
 
+// GetUserByEmail is used in the authentication process
+func (d *OrmDatabase) GetUserByEmail(email string) (common.User, error) {
+	var user DbUser
+
+	err := d.db.Where("email = ?", strings.ToLower(email)).First(&user).Error
+
+	return demapUser(user), errors.Wrap(err, "Unable to locate the given user")
+
+}
+
 // GetAllUsers - gets all users
 func (d *OrmDatabase) GetAllUsers(limit int, page int) ([]common.User, error) {
 	var users []DbUser
