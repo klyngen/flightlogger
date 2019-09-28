@@ -13,7 +13,39 @@ Here we use a layered model in order to ensure security. The backend API will ba
 - (ORM library)
 
 # Project setup
-The backend is really a simple golang project. You need golang installed as well as **[dep](https://github.com/golang/dep)**. After dependencies do a `go get github.com/klyngen/flightlogger` followed by `dep ensure`. 
+
+## Dependencies
+* golang
+* git
+* **[dep](https://github.com/golang/dep)** (golang package manager)
+
+Please also set the GOHOME environment variable should be $HOME/go
+
+## Project setup
+1. `go get github.com/klyngen/flightlogger` followed by `dep ensure`. 
+2. Generate certificates 
+```bash
+openssl genrsa -out fly.rsa 2048
+openssl rsa -in app.rsa -pubout > fly.rsa.pub
+```
+3. Migrate the database...
+4. Add configuraion preferrably to $HOME/.flightlogger/flightlog.yaml
+```yaml
+serverport: "61225"
+publicKeyPath: "$HOME/.flightlogger/fly.rsa.pub"
+privateKeyPath: "$HOME/.flightlogger/fly.rsa"
+# Expiration in seconds
+tokenexpiration: 3600
+
+database:
+   hostname: "canbeempty"
+   password: "dbpassword"
+   port: "canbeempty"
+   username: "dbuser"
+   database: "Flightlog"
+```
+
+5. `go run main.go`
 
 # Contributions
 All help is appreciated. Send me an email if you wonder how you can contribute or just make a PR. 

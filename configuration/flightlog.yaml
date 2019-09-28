@@ -9,3 +9,9 @@ database:
   port: "port"
   username: "username"
   database: "database"
+
+email:
+  smtpServer: "server"
+  username: "uname",
+  password: "pass"
+  port: "42"

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/klyngen/flightlogger/common"
 	"github.com/klyngen/jsend"
@@ -62,18 +61,13 @@ func (f *FlightLogApi) loginHandler(w http.ResponseWriter, r *http.Request) {
 	token, err := f.service.Authenticate(creds.Username, creds.Password)
 
 	if err != nil {
-		jsend.FormatResponse(w, "Bad credentials", jsend.UnAuthorized)
+		jsend.FormatResponse(w, err.Error(), jsend.UnAuthorized)
 		return
 	}
-	expiration := time.Now().Add(time.Second * time.Duration(f.timeout))
 
-	http.SetCookie(w, &http.Cookie{
-		Name:    "token",
-		Value:   token,
-		Expires: expiration,
-	})
+	w.Header().Set("Authorization", fmt.Sprintf("Bearer %v", token))
 
-	jsend.FormatResponse(w, "Success", jsend.Success)
+	jsend.FormatResponse(w, "Authenticated!", jsend.Success)
 }
 
 // Middleware to verify the accesstoken
@@ -87,7 +81,7 @@ func (f *FlightLogApi) authMiddleware(next http.Handler) http.Handler {
 		}
 
 		tokenString = strings.Replace(tokenString, "Bearer ", "", 1)
-		_, err := verifyToken(tokenString, f.secret)
+		_, err := f.service.VerifyTokenString(tokenString)
 		if err != nil {
 			jsend.FormatResponse(w, "Error verifying token. Expired or invalid", jsend.UnAuthorized)
 			return
@@ -105,16 +99,4 @@ func getToken(user common.User) (string, error) {
 	})
 	tokenString, err := token.SignedString(signingKey)
 	return tokenString, err
-}
-
-func verifyToken(tokenString string, secret string) (jwt.Claims, error) {
-	signingKey := []byte(secret)
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		return signingKey, nil
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return token.Claims, err
 }

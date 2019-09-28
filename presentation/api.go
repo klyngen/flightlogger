@@ -13,6 +13,7 @@ import (
 	"github.com/klyngen/jsend"
 )
 
+// FlightLogApi describes a presentation-service
 type FlightLogApi struct {
 	service common.FlightLogService
 	router  *mux.Router
@@ -24,6 +25,7 @@ type FlightLogApi struct {
 // NewService creates an api with defined routes
 func NewService(service common.FlightLogService, config configuration.ApplicationConfig) FlightLogApi {
 	router := mux.NewRouter()
+
 	unprotected := router.PathPrefix("/api/public").Subrouter()
 	protected := router.PathPrefix("/api/protected").Subrouter()
 	// Mount authenticationRoutes
@@ -35,6 +37,7 @@ func NewService(service common.FlightLogService, config configuration.Applicatio
 	// Create the API
 	api := FlightLogApi{service: service, router: router, port: config.Serverport}
 	api.mountAuthenticationRoutes(unprotected)
+	api.mountUserRoutes(protected)
 
 	protected.Use(api.authMiddleware)
 

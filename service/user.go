@@ -12,6 +12,7 @@ import (
 // Claims describes the basic claims in this plattform
 type Claims struct {
 	Username  string
+	UserID    string
 	Firstname string
 	Lastname  string
 	jwt.StandardClaims
@@ -38,12 +39,15 @@ func (s *FlightLogService) Authenticate(username string, password string) (strin
 	// Create the JWT-token
 	claims := &Claims{
 		Username:       user.Email,
+		Firstname:      user.FirstName,
+		Lastname:       user.LastName,
+		UserID:         user.ID,
 		StandardClaims: jwt.StandardClaims{ExpiresAt: expiration},
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
 
-	tokenString, err := token.SignedString(s.config.Secret)
+	tokenString, err := token.SignedString(s.signingkey)
 
 	if err != nil {
 		return "", errors.Wrap(err, "Unable to create token")

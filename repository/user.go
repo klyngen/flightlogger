@@ -60,7 +60,7 @@ func (f *MySQLRepository) GetAllUsers(limit int, page int) ([]common.User, error
 
 // GetUser gets a singular user
 func (f *MySQLRepository) GetUser(ID string, user *common.User) error {
-	stmt, err := f.db.Prepare("SELECT ID, Firstname, Lastname, Email, PasswordHash, PasswordSalt FROM User where ID = ?")
+	stmt, err := f.db.Prepare("SELECT ID, Firstname, Lastname, Email, PasswordHash, PasswordSalt FROM User where ID = ? LIMIT 1")
 
 	defer stmt.Close()
 
@@ -68,10 +68,14 @@ func (f *MySQLRepository) GetUser(ID string, user *common.User) error {
 		return errors.Wrap(err, "Could not understand the statement")
 	}
 
+	// Instantiate the object
+	if user == nil {
+		user = &common.User{}
+	}
+	// Map the rows if possible
 	err = stmt.QueryRow(ID).Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.PasswordHash, &user.PasswordSalt)
 
 	return errors.Wrap(err, "Could not feth the given user")
-
 }
 
 // UpdateUser does just that

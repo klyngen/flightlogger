@@ -1,8 +1,11 @@
 package common
 
+import "github.com/dgrijalva/jwt-go"
+
 // FlightLogService describes how we interact with our business-logic
 type FlightLogService interface {
 	Authenticate(username string, password string) (string, error)
+	VerifyTokenString(token string) (jwt.Claims, error)
 
 	CreateUser(user *User, password string) error
 	GetAllUsers(limit int, page int) ([]User, error)
