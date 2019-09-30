@@ -12,19 +12,19 @@ import (
 
 // User - defines the basic user model exposed on the API's
 type User struct {
-	ID            uint
+	ID            string
 	Username      string
 	FirstName     string
 	LastName      string
 	Email         string
+	Active        bool `json:"-"`
 	Clubs         []Club
 	Scopes        []UserScope
 	Groups        []UserGroup
 	Wings         []Wing
-	PasswordHash  []byte
-	PasswordSalt  []byte
 	TimeUpdated   time.Time
 	TimeGenerated time.Time
+	PasswordHash  []byte `json:"-"` // Salt and hash should not be a part of serialized JSON
 }
 
 // UserScope - the possible scopes of a user
@@ -59,6 +59,7 @@ type Location struct {
 	Description string
 	Longitude   float64
 	Lattitude   float64
+	CountryName string
 	AreaName    string
 	PostalCode  string
 	CountryPart string

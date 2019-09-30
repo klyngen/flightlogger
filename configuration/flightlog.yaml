@@ -1,5 +1,10 @@
 serverport: "61225"
-secret: "secret"
+serverURL: "http://localhost"
+
+publicKeyPath: "$HOME/.flightlogger/app.rsa.pub"
+privateKeyPath: "$HOME/.flightlogger/app.rsa"
+# Expiration in seconds
+tokenexpiration: 3600
 
 database:
   hostname: "hostname"
@@ -7,3 +12,10 @@ database:
   port: "port"
   username: "username"
   database: "database"
+
+email:
+  username: "uname"
+  password: "pass"
+  smtpServer: "server"
+  port: "42"
+
