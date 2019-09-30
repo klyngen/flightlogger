@@ -17,6 +17,7 @@ type User struct {
 	FirstName     string
 	LastName      string
 	Email         string
+	Active        bool `json:"-"`
 	Clubs         []Club
 	Scopes        []UserScope
 	Groups        []UserGroup
@@ -24,7 +25,6 @@ type User struct {
 	TimeUpdated   time.Time
 	TimeGenerated time.Time
 	PasswordHash  []byte `json:"-"` // Salt and hash should not be a part of serialized JSON
-	PasswordSalt  []byte `json:"-"`
 }
 
 // UserScope - the possible scopes of a user
@@ -59,6 +59,7 @@ type Location struct {
 	Description string
 	Longitude   float64
 	Lattitude   float64
+	CountryName string
 	AreaName    string
 	PostalCode  string
 	CountryPart string

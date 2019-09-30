@@ -40,10 +40,21 @@ func main() {
 	// Should be enough to add email-support to our application (DataLayer)
 	emailService := email.NewEmailService(config.EmailConfiguration)
 
+	if emailService == nil {
+		panic("Cannot have non-existing email-service")
+	}
+
 	// Instantiate our use-case / service-layer
 	service := service.NewService(db, emailService, config)
 
 	// Create our presentation layer
 	api := presentation.NewService(service, config)
 	api.StartAPI()
+}
+
+type Test struct {
+}
+
+func (t Test) New() {
+	log.Println("not")
 }

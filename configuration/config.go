@@ -17,6 +17,7 @@ var homeSigns = [...]string{"~", "$HOME"}
 // ApplicationConfig contains the config parameters used for this excellent app
 type ApplicationConfig struct {
 	Serverport            string
+	ServerURL             string
 	PrivateKeyPath        string
 	PublicKeyPath         string
 	Tokenexpiration       int
@@ -26,7 +27,7 @@ type ApplicationConfig struct {
 
 // EmailConfiguration is just that. Configures SMTP-interaction
 type EmailConfiguration struct {
-	SMTPServer string
+	SmtpServer string
 	Username   string
 	Password   string
 	Port       string
@@ -105,6 +106,6 @@ func initializeConfig() {
 	err := viper.ReadInConfig()
 
 	if err != nil {
-		log.Fatalf("Unable to find flightlog-config in any of %v", configpaths)
+		log.Fatalf("Unable to find flightlog-config in any of %v \n And got the following error: \n %v", configpaths, err)
 	}
 }

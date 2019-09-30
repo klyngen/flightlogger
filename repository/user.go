@@ -9,14 +9,14 @@ import (
 
 // CreateUser creates an unique user
 func (f *MySQLRepository) CreateUser(user *common.User) error {
-	stmt, err := f.db.Prepare("INSERT INTO User (ID, Firstname, Lastname, Email, PasswordHash, PasswordSalt)  VALUES (UUID(), ?, ?, ?, ?, ?)")
+	stmt, err := f.db.Prepare("INSERT INTO User (ID, Firstname, Lastname, Email, PasswordHash)  VALUES (UUID(), ?, ?, ?, ?)")
 	defer stmt.Close()
 
 	if err != nil {
 		return errors.Wrap(err, "Could not understand the statement")
 	}
 
-	_, err = stmt.Exec(user.FirstName, user.LastName, user.Email, user.PasswordHash, user.PasswordSalt)
+	_, err = stmt.Exec(user.FirstName, user.LastName, user.Email, user.PasswordHash)
 
 	if err != nil {
 		return errors.Wrap(err, "Unable to insert the user")
@@ -28,9 +28,19 @@ func (f *MySQLRepository) CreateUser(user *common.User) error {
 
 }
 
+func (f *MySQLRepository) ActivateUser(UserID string) error {
+	stmt, err := f.db.Prepare("UPDATE User SET Active=1 WHERE ID = ? LIMIT 1")
+
+	defer stmt.Close()
+
+	_, err = stmt.Exec(UserID)
+
+	return errors.Wrap(err, "Unable to activate the user")
+}
+
 // GetAllUsers gets all the users implements paging
 func (f *MySQLRepository) GetAllUsers(limit int, page int) ([]common.User, error) {
-	stmt, err := f.db.Prepare("SELECT ID, Firstname, Lastname, Email, PasswordHash, PasswordSalt FROM User LIMIT ?,?")
+	stmt, err := f.db.Prepare("SELECT ID, Firstname, Lastname, Email, PasswordHash FROM User LIMIT ?,? WHERE Active = 1")
 
 	defer stmt.Close()
 	if err != nil {
@@ -46,7 +56,7 @@ func (f *MySQLRepository) GetAllUsers(limit int, page int) ([]common.User, error
 	for result.Next() {
 		user := common.User{}
 
-		err := result.Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.PasswordHash, &user.PasswordSalt)
+		err := result.Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.PasswordHash)
 
 		if err != nil {
 			log.Printf("Skipping marshaling of a row due to the following error: \n %v", err)
@@ -60,7 +70,7 @@ func (f *MySQLRepository) GetAllUsers(limit int, page int) ([]common.User, error
 
 // GetUser gets a singular user
 func (f *MySQLRepository) GetUser(ID string, user *common.User) error {
-	stmt, err := f.db.Prepare("SELECT ID, Firstname, Lastname, Email, PasswordHash, PasswordSalt FROM User where ID = ? LIMIT 1")
+	stmt, err := f.db.Prepare("SELECT ID, Firstname, Lastname, Email, PasswordHash, Active FROM User where ID = ? LIMIT 1")
 
 	defer stmt.Close()
 
@@ -73,7 +83,7 @@ func (f *MySQLRepository) GetUser(ID string, user *common.User) error {
 		user = &common.User{}
 	}
 	// Map the rows if possible
-	err = stmt.QueryRow(ID).Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.PasswordHash, &user.PasswordSalt)
+	err = stmt.QueryRow(ID).Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.PasswordHash, &user.Active)
 
 	return errors.Wrap(err, "Could not feth the given user")
 }
@@ -88,7 +98,7 @@ func (f *MySQLRepository) UpdateUser(ID string, user *common.User) error {
 		return errors.Wrap(err, "Could not understand the statement")
 	}
 
-	_, err = stmt.Exec(user.FirstName, user.LastName, user.Email, user.PasswordHash, user.PasswordSalt, ID)
+	_, err = stmt.Exec(user.FirstName, user.LastName, user.Email, user.PasswordHash)
 
 	return errors.Wrap(err, "Unable to update the user due to unexpected error")
 }
@@ -109,7 +119,7 @@ func (f *MySQLRepository) DeleteUser(ID string) error {
 
 // GetUserByEmail is used in the authentication-process
 func (f *MySQLRepository) GetUserByEmail(Email string, user *common.User) error {
-	stmt, err := f.db.Prepare("SELECT ID, Firstname, Lastname, Email, PasswordHash, PasswordSalt FROM User where Email = ?")
+	stmt, err := f.db.Prepare("SELECT ID, Firstname, Lastname, Email, PasswordHash, Active FROM User where Email = ?")
 
 	defer stmt.Close()
 
@@ -117,7 +127,7 @@ func (f *MySQLRepository) GetUserByEmail(Email string, user *common.User) error 
 		return errors.Wrap(err, "Could not understand the statement")
 	}
 
-	err = stmt.QueryRow(Email).Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.PasswordHash, &user.PasswordSalt)
+	err = stmt.QueryRow(Email).Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.PasswordHash, &user.Active)
 
 	return errors.Wrap(err, "Could not feth the given user")
 }

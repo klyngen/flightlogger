@@ -3,13 +3,14 @@ package presentation
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/klyngen/flightlogger/common"
 	"github.com/klyngen/jsend"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 )
 
@@ -26,6 +27,40 @@ type registerContent struct {
 func (f *FlightLogApi) mountAuthenticationRoutes(router *mux.Router) {
 	router.HandleFunc("/login", f.loginHandler).Methods("POST")
 	router.HandleFunc("/createuser", f.newUserHandler).Methods("POST")
+	router.HandleFunc("/verify", f.verifyUserAccount).Methods("GET")
+}
+
+// TODO: make this redirect to some GUI
+func (f *FlightLogApi) verifyUserAccount(w http.ResponseWriter, r *http.Request) {
+	token := r.URL.Query()["token"]
+	log.Printf("Get user for ID: %v", token)
+
+	if len(token[0]) > 0 {
+		claims, err := f.service.VerifyTokenString(token[0])
+
+		if err != nil {
+			log.Printf("Invalid token passed to service %v", token[0])
+			jsend.FormatResponse(w, "Bad token", jsend.BadRequest)
+			return
+		}
+
+		// "Parse" the claims
+		userID := claims.(jwt.MapClaims)["UserID"]
+		log.Println(claims, userID)
+
+		if err = f.service.ActivateUser(userID.(string)); err != nil {
+			log.Printf("Unable to activate userID %s, due to erro %v", userID, err)
+			jsend.FormatResponse(w, "Could not activate the user", jsend.InternalServerError)
+			return
+		}
+
+		jsend.FormatResponse(w, "User is activated", jsend.Success)
+
+		return
+	}
+
+	jsend.FormatResponse(w, "No token is present. Are you trying to hack me!?", jsend.BadRequest)
+
 }
 
 func (f *FlightLogApi) newUserHandler(w http.ResponseWriter, r *http.Request) {
@@ -89,14 +124,4 @@ func (f *FlightLogApi) authMiddleware(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r)
 	})
-}
-
-func getToken(user common.User) (string, error) {
-	signingKey := []byte("keymaker")
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"name":  fmt.Sprintf("%s %s", user.FirstName, user.LastName),
-		"email": user.Email,
-	})
-	tokenString, err := token.SignedString(signingKey)
-	return tokenString, err
 }

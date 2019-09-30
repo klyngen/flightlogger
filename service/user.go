@@ -1,6 +1,8 @@
 package service
 
 import (
+	"fmt"
+	"log"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -16,6 +18,11 @@ type Claims struct {
 	Firstname string
 	Lastname  string
 	jwt.StandardClaims
+}
+
+type VerificationClaims struct {
+	jwt.StandardClaims
+	UserID string
 }
 
 // Authenticate should verify the logon and create a valid JWT-token
@@ -56,6 +63,25 @@ func (s *FlightLogService) Authenticate(username string, password string) (strin
 	return tokenString, nil
 }
 
+// ActivateUser is a straight pass-through to the database
+func (s *FlightLogService) ActivateUser(UserID string) error {
+	return s.database.ActivateUser(UserID)
+}
+
+// CreateVerificationToken creates a token used in an verification-email
+func (s *FlightLogService) createVerificationToken(email string, ID string) (string, error) {
+	expiration := time.Now().Add(time.Second * time.Duration(s.config.Tokenexpiration)).Unix()
+
+	claims := &VerificationClaims{
+		StandardClaims: jwt.StandardClaims{ExpiresAt: expiration},
+		UserID:         ID,
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
+
+	return token.SignedString(s.signingkey)
+}
+
 // CreateUser does not have any specific logic and will return the database-result / error
 func (s *FlightLogService) CreateUser(user *common.User, password string) error {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
@@ -64,9 +90,26 @@ func (s *FlightLogService) CreateUser(user *common.User, password string) error 
 		return err
 	}
 	user.PasswordHash = hash
-	user.PasswordSalt = []byte("sdfsdf")
 
-	return s.database.CreateUser(user)
+	// Will create an inactive user
+	if err = s.database.CreateUser(user); err != nil {
+		log.Printf("we could not create the user: %s", err)
+		return err
+	}
+
+	var tokenString string
+
+	if tokenString, err = s.createVerificationToken(user.Email, user.ID); err != nil {
+		log.Printf("Unable to create tokenstrings for verification for UID: %s. With error %v", user.ID, err)
+		return err
+	}
+
+	log.Printf("User created with ID: %s,sending verification Email", user.ID)
+	log.Println(s.email)
+	// Try to send an verification-email to the user
+	return s.email.SendVerificationEmail(user.Email,
+		fmt.Sprintf("%s:%s/api/public/verify?token=%s", s.config.ServerURL, s.config.Serverport, tokenString))
+
 }
 
 // GetAllUsers does not have any specific logic and will return the database-result / error

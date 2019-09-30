@@ -12,6 +12,8 @@ type FlightLogDatabase interface {
 	UpdateUser(ID string, user *User) error
 	DeleteUser(ID string) error
 
+	ActivateUser(UserID string) error
+
 	// Location CRUD and search
 	CreateLocation(location *Location) error
 	UpdateLocation(ID uint, location *Location) error

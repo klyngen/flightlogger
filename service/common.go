@@ -23,7 +23,7 @@ type FlightLogService struct {
 // NewService creates a new flightlogservice
 func NewService(database common.FlightLogDatabase, email common.EmailServiceInterface, config configuration.ApplicationConfig) *FlightLogService {
 	sign, verify := getSigningKeys(config.PrivateKeyPath, config.PublicKeyPath)
-	return &FlightLogService{database: database, config: config, signingkey: sign, verifykey: verify}
+	return &FlightLogService{database: database, config: config, signingkey: sign, verifykey: verify, email: email}
 }
 
 func getSigningKeys(privatekeypath string, publickeypath string) (*rsa.PrivateKey, *rsa.PublicKey) {

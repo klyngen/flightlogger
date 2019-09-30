@@ -6,6 +6,7 @@ import "github.com/dgrijalva/jwt-go"
 type FlightLogService interface {
 	Authenticate(username string, password string) (string, error)
 	VerifyTokenString(token string) (jwt.Claims, error)
+	ActivateUser(UserID string) error
 
 	CreateUser(user *User, password string) error
 	GetAllUsers(limit int, page int) ([]User, error)

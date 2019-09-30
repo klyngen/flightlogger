@@ -28,7 +28,6 @@ func TestUserLifecycle(t *testing.T) {
 	assert.Equal(t, "Nordmann", user.LastName)
 	assert.Equal(t, "ola@nordmann.no", user.Email)
 	assert.Assert(t, (bytes.Compare(user.PasswordHash, []byte("hashyHash"))) == 0)
-	assert.Assert(t, (bytes.Compare(user.PasswordSalt, []byte("reallySalty"))) == 0)
 
 	// Change some data
 	user.FirstName = "Kari"

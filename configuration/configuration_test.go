@@ -26,7 +26,7 @@ func TestConfigurationUnmarshalling(t *testing.T) {
 	assert.Equal(t, "42", config.EmailConfiguration.Port)
 	assert.Equal(t, "uname", config.EmailConfiguration.Username)
 	assert.Equal(t, "pass", config.EmailConfiguration.Password)
-	assert.Equal(t, "server", config.EmailConfiguration.SMTPServer)
+	assert.Equal(t, "server", config.EmailConfiguration.SmtpServer)
 }
 
 func TestGettingAbsolutePath(t *testing.T) {
