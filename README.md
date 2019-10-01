@@ -9,8 +9,8 @@ Here we use a layered model in order to ensure security. The backend API will ba
 
 ### Backend
 - Presentation-layer
+- Business (UseCase)
 - Datalayer
-- (ORM library)
 
 # Project setup
 
