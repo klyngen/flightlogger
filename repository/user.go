@@ -40,15 +40,14 @@ func (f *MySQLRepository) ActivateUser(UserID string) error {
 
 // GetAllUsers gets all the users implements paging
 func (f *MySQLRepository) GetAllUsers(limit int, page int) ([]common.User, error) {
-	stmt, err := f.db.Prepare("SELECT ID, Firstname, Lastname, Email, PasswordHash FROM User LIMIT ?,? WHERE Active = 1")
+	stmt, err := f.db.Prepare("SELECT ID, Firstname, Lastname, Email, PasswordHash FROM User WHERE Active = 1 LIMIT ?,?")
 
-	defer stmt.Close()
 	if err != nil {
 		return nil, errors.Wrap(err, "Unable to prepare statement")
 	}
+	defer stmt.Close()
 
 	result, err := stmt.Query(page*limit, limit)
-	defer result.Close()
 
 	var users []common.User
 
@@ -64,6 +63,7 @@ func (f *MySQLRepository) GetAllUsers(limit int, page int) ([]common.User, error
 
 		users = append(users, user)
 	}
+	defer result.Close()
 
 	return users, errors.Wrap(err, "Unable to fetch the requested users")
 }
@@ -90,7 +90,7 @@ func (f *MySQLRepository) GetUser(ID string, user *common.User) error {
 
 // UpdateUser does just that
 func (f *MySQLRepository) UpdateUser(ID string, user *common.User) error {
-	stmt, err := f.db.Prepare("UPDATE User SET Firstname = ?, Lastname = ?, Email = ?, PasswordHash = ?, PasswordSalt = ? WHERE ID = ? LIMIT 1")
+	stmt, err := f.db.Prepare("UPDATE User SET Firstname = ?, Lastname = ?, Email = ?, PasswordHash = ? WHERE ID = ? LIMIT 1")
 
 	defer stmt.Close()
 
@@ -98,7 +98,7 @@ func (f *MySQLRepository) UpdateUser(ID string, user *common.User) error {
 		return errors.Wrap(err, "Could not understand the statement")
 	}
 
-	_, err = stmt.Exec(user.FirstName, user.LastName, user.Email, user.PasswordHash)
+	_, err = stmt.Exec(user.FirstName, user.LastName, user.Email, user.PasswordHash, ID)
 
 	return errors.Wrap(err, "Unable to update the user due to unexpected error")
 }
