@@ -18,7 +18,6 @@ func TestUserLifecycle(t *testing.T) {
 		LastName:     "Nordmann",
 		Email:        "ola@nordmann.no",
 		PasswordHash: []byte("hashyHash"),
-		PasswordSalt: []byte("reallySalty"),
 	}
 
 	assert.NilError(t, database.CreateUser(&user), "Could not create the user")
