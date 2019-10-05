@@ -176,20 +176,130 @@ func (f *MySQLRepository) CreateLocation(location *common.Location) error {
 	return err
 }
 
+// UpdateLocation - updates location data and other directly connected entities
 func (f *MySQLRepository) UpdateLocation(ID uint, location *common.Location) error {
-	panic("not implemented")
+	var stmt *sql.Stmt
+	var err error
+	if stmt, err = f.db.Prepare("UPDATE Location SET Name = ?, Elevation = ?, Description = ?, CountryPartId = ?, CoordinateId = ? WHERE Id = ?"); err != nil {
+		log.Printf("Could not prepare update-location statement: %v \n", err)
+		return err
+	}
+	defer stmt.Close()
+
+	// Resolve ID's of sub-entities
+	coordinateID, err := createCoordinates(f.db, location.Longitude, location.Lattitude)
+	if err != nil {
+		log.Printf("Could not resolve location-keys %v", err)
+		return err
+	}
+	countryPartID, err := createCountryPart(f.db, location.AreaName, location.PostalCode, location.CountryName)
+
+	if err != nil {
+		log.Printf("Could not resolve keys %v", err)
+		return err
+	}
+
+	var result sql.Result
+	// Now we have our entities, we update!
+	if result, err = stmt.Exec(location.Name, location.Elevation, location.Description, countryPartID, coordinateID, location.ID); err != nil {
+		return err
+	}
+
+	var rows int64
+	if rows, err = result.RowsAffected(); err != nil {
+		return err
+	}
+
+	if rows == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
 }
 
+// DeleteLocation soft-deletes the location
 func (f *MySQLRepository) DeleteLocation(ID uint) error {
-	panic("not implemented")
+	var stmt *sql.Stmt
+	var err error
+	if stmt, err = f.db.Prepare("UPDATE Location SET Deleted = CURRENT_TIMESTAMP WHERE Id = ? LIMIT 1"); err != nil {
+		log.Printf("Could not prepare delete-location statement %v \n", err)
+		return err
+	}
+
+	var result sql.Result
+	if result, err = stmt.Exec(ID); err != nil {
+		log.Printf("Something did not work while deleting the Location with Id %d,  %v \n", ID, err)
+		return err
+	}
+
+	changes, err := result.RowsAffected()
+
+	if err != nil {
+		log.Printf("Could not get the resultset when treaing ID: %d,  %v \n", ID, err)
+		return err
+	}
+
+	if changes == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
 }
 
-func (f *MySQLRepository) LocationSearchByName(name string, locations *common.Location) error {
-	panic("not implemented")
+// LocationSearchByName - gets all locations resembling the search-term
+func (f *MySQLRepository) LocationSearchByName(name string) ([]common.Location, error) {
+	var err error
+	var stmt *sql.Stmt
+	if stmt, err = f.db.Prepare(`select Id, Elevation, Description, Location.Name, Areaname, PostalCode, Country.Name, Longitude, Latitude from Location 
+		INNER JOIN CountryPart ON CountryPart.Id = Location.CountryPartId 
+		INNER JOIN Country ON CountryPart.CountryId = Country.Id 
+		INNER JOIN Coordinates ON CoordinateId = Coordinates.Id
+			WHERE Name Like '%?%'`); err != nil {
+		log.Printf("Unable to prepare Location-search statement")
+		return nil, err
+	}
+
+	rows, err := stmt.Query(name)
+
+	if err != nil {
+		log.Printf("Could not get locations %v when searching by name %s \n", err, name)
+		return nil, err
+	}
+
+	locations := make([]common.Location, 0)
+
+	for rows.Next() {
+		location := common.Location{}
+		if err = rows.Scan(&location.ID, &location.Elevation, &location.Description, &location.Name, &location.Name, &location.AreaName,
+			&location.PostalCode, &location.CountryName, &location.Longitude, &location.Lattitude); err != nil {
+			log.Printf("Could not serialize the row %v", err)
+		}
+		locations = append(locations, location)
+	}
+
+	return locations, nil
 }
 
+// GetLocation gets the location by it's ID
 func (f *MySQLRepository) GetLocation(ID uint, location *common.Location) error {
-	panic("not implemented")
+	var err error
+	var stmt *sql.Stmt
+	if stmt, err = f.db.Prepare(`select Elevation, Description, Location.Name, Areaname, PostalCode, Country.Name, Longitude, Latitude from Location 
+		INNER JOIN CountryPart ON CountryPart.Id = Location.CountryPartId 
+		INNER JOIN Country ON CountryPart.CountryId = Country.Id 
+		INNER JOIN Coordinates ON CoordinateId = Coordinates.Id
+			WHERE Name Id = ?`); err != nil {
+		log.Printf("Unable to prepare Location-search statement")
+		return err
+	}
+	rows, err := stmt.Query(ID)
+
+	if location == nil {
+		location = &common.Location{}
+	}
+
+	return rows.Scan(&location.ID, &location.Elevation, &location.Description, &location.Name, &location.Name, &location.AreaName,
+		&location.PostalCode, &location.CountryName, &location.Longitude, &location.Lattitude)
 }
 
 // StartSite

@@ -18,7 +18,7 @@ type FlightLogDatabase interface {
 	CreateLocation(location *Location) error
 	UpdateLocation(ID uint, location *Location) error
 	DeleteLocation(ID uint) error
-	LocationSearchByName(name string, locations *Location) error
+	LocationSearchByName(name string) ([]Location, error)
 	GetLocation(ID uint, location *Location) error
 
 	// UserGroup CRUD and search
