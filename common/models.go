@@ -62,23 +62,25 @@ type Location struct {
 	CountryName string
 	AreaName    string
 	PostalCode  string
-	CountryPart string
 }
 
 // StartSite - describes a start sight for flight
 type StartSite struct {
-	ID         uint
-	Name       string
-	Location   Location
-	Waypoints  []Waypoint
-	Difficulty int
+	Location
+	ID          uint
+	Name        string
+	Waypoints   []Waypoint
+	Difficulty  int
+	Description string
 }
 
 // Waypoint - describes a start sight for flight
 type Waypoint struct {
-	ID         uint
-	Difficulty int
-	Location   Location
+	Location
+	ID          uint
+	Difficulty  int
+	Name        string
+	Description string
 }
 
 // Flight - describes a flight

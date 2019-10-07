@@ -26,3 +26,7 @@ func (f *MySQLRepository) CreateConnection(username string, password string, dat
 	f.db = db
 	return err
 }
+
+type rowScanner interface {
+	Scan(args ...interface{}) error
+}
