@@ -47,7 +47,7 @@ func (f *MySQLRepository) GetAllUsers(limit int, page int) ([]common.User, error
 	}
 	defer stmt.Close()
 
-	result, err := stmt.Query(page*limit, limit)
+	result, err := stmt.Query((page-1)*limit, limit)
 
 	var users []common.User
 

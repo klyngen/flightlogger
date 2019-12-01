@@ -50,11 +50,5 @@ func main() {
 	// Create our presentation layer
 	api := presentation.NewService(service, config)
 	api.StartAPI()
-}
 
-type Test struct {
-}
-
-func (t Test) New() {
-	log.Println("not")
 }

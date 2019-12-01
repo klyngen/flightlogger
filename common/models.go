@@ -21,7 +21,7 @@ type User struct {
 	Clubs         []Club
 	Scopes        []UserScope
 	Groups        []UserGroup
-	Wings         []Wing
+	Wings         []FlyingDevice
 	TimeUpdated   time.Time
 	TimeGenerated time.Time
 	PasswordHash  []byte `json:"-"` // Salt and hash should not be a part of serialized JSON
@@ -94,7 +94,7 @@ type Flight struct {
 	Distance    int
 	MaxHight    int
 	HangTime    int
-	Wing        Wing
+	Wing        FlyingDevice
 	Incidents   []Incident
 	Photos      []FileReference
 	FlightLog   FileReference
@@ -117,19 +117,20 @@ type Incident struct {
 }
 
 // Wing - describes a wing
-type Wing struct {
-	ID      uint
-	Name    string
-	Images  []FileReference
-	Details WingDetails
+type FlyingDevice struct {
+	ID         uint
+	Model      string
+	Make       string
+	Images     []FileReference
+	DeviceType FlyingDeviceType
+	Details    []FlyingDeviceDetails
 }
 
 // WingDetails - details of the wing test
-type WingDetails struct {
+type FlyingDeviceDetails struct {
 	ID          uint
 	Description string
-	DhvScore    string
-	EnaScore    string
+	DetailName  string
 }
 
 // FileReference - describes whre a file is stored

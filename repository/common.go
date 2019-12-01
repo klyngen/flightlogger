@@ -30,3 +30,46 @@ func (f *MySQLRepository) CreateConnection(username string, password string, dat
 type rowScanner interface {
 	Scan(args ...interface{}) error
 }
+
+// DEFINE COMMON ERRORS
+type DataLayerError struct {
+	message   string // Example -> foreignkeyissue
+	action    string // Example -> INSERT
+	entity    string // Example -> FlyingDevice
+	errorType DataLayerErrorType
+}
+
+func (e *DataLayerError) Error() string {
+	return fmt.Sprintf("'%s' to '%s' created the following error-message: '%s'", e.action, e.entity, e.message)
+}
+
+func (e *DataLayerError) Type() DataLayerErrorType {
+	return e.errorType
+}
+
+type DataLayerErrorType int
+
+// New creates a new error
+func (t DataLayerErrorType) New(message string, action string, entity string) *DataLayerError {
+	return &DataLayerError{
+		message:   message,
+		action:    action,
+		entity:    entity,
+		errorType: t,
+	}
+}
+
+// NewFromException - not neccessary but makes code simpler
+func (t DataLayerErrorType) NewFromException(err error, action string, entity string) *DataLayerError {
+	return t.New(err.Error(), action, entity)
+}
+
+const (
+	BadSqlError             DataLayerErrorType = 1
+	EntityResolutionError   DataLayerErrorType = 2
+	RowInsertionError       DataLayerErrorType = 3
+	SerilizationError       DataLayerErrorType = 4
+	DriverFunctionError     DataLayerErrorType = 5
+	TransactionError        DataLayerErrorType = 6
+	StatementExecutionError DataLayerErrorType = 7
+)

@@ -373,9 +373,25 @@ func mapStartSite(row rowScanner, startsite *common.StartSite) error {
 	if startsite == nil {
 		startsite = &common.StartSite{}
 		startsite.Location = common.Location{}
+		startsite.Waypoints = make([]common.Waypoint, 0)
 	}
 
-	return row.Scan(&startsite.Location.ID, &startsite.Location.Elevation, &startsite.Location.Description, &startsite.Location.Name, &startsite.Location.AreaName, &startsite.Location.PostalCode, &startsite.Location.CountryName, &startsite.Location.Longitude, &startsite.Location.Lattitude, &startsite.ID, &startsite.Name, &startsite.Description, &startsite.Difficulty)
+	var tempWaypointId interface{}
+
+	err := row.Scan(&startsite.Location.ID, &startsite.Location.Elevation, &startsite.Location.Description, &startsite.Location.Name, &startsite.Location.AreaName, &startsite.Location.PostalCode, &startsite.Location.CountryName, &startsite.Location.Longitude, &startsite.Location.Lattitude, &startsite.ID, &startsite.Name, &startsite.Description, &startsite.Difficulty, &tempWaypointId)
+
+	// We decide whether we want to include the Waypoint
+	if err != nil {
+		return err
+	}
+
+	if tempWaypointId != "" {
+		if tempId, ok := tempWaypointId.(uint); ok {
+			startsite.Waypoints = append(startsite.Waypoints, common.Waypoint{ID: tempId})
+		}
+	}
+
+	return nil
 }
 
 // GetAllStartSites is a paged fetch for start-sites
@@ -388,7 +404,7 @@ func (f *MySQLRepository) GetAllStartSites(limit int, page int) ([]common.StartS
 		return nil, err
 	}
 
-	rows, err := stmt.Query(page*limit, limit)
+	rows, err := stmt.Query((page-1)*limit, limit)
 	defer stmt.Close()
 
 	if err != nil {
@@ -479,9 +495,11 @@ func mapWaypoint(row rowScanner, waypoint *common.Waypoint) error {
 		waypoint.Location = common.Location{}
 	}
 
-	return row.Scan(&waypoint.Location.ID, &waypoint.Location.Elevation, &waypoint.Location.Description, &waypoint.Location.Name, &waypoint.Location.AreaName,
-		&waypoint.Location.PostalCode, &waypoint.Location.CountryName, &waypoint.Location.Longitude, &waypoint.Location.Lattitude, &waypoint.ID, &waypoint.Name, &waypoint.Description, &waypoint.Difficulty)
-
+	return row.Scan(&waypoint.Location.ID, &waypoint.Location.Elevation,
+		&waypoint.Location.Description, &waypoint.Location.Name, &waypoint.Location.AreaName,
+		&waypoint.Location.PostalCode, &waypoint.Location.CountryName,
+		&waypoint.Location.Longitude, &waypoint.Location.Lattitude,
+		&waypoint.ID, &waypoint.Name, &waypoint.Description, &waypoint.Difficulty)
 }
 
 // DeleteWaypoint soft-deletes a startsite
