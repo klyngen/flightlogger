@@ -49,12 +49,12 @@ type FlightLogService interface {
 	GetFlightIncidents(limit int, page int) ([]Incident, error)
 
 	// Wing CRUD
-	CreateWing(wing *Wing) error
-	UpdateWing(ID uint, wing *Wing) error
+	CreateWing(wing *FlyingDevice) error
+	UpdateWing(ID uint, wing *FlyingDevice) error
 	DeleteWing(ID uint) error
-	GetWing(ID uint, wing *Wing) error
-	GetAllWings(limit uint, page uint) ([]Wing, error)
-	GetWingSearchByName(name string) ([]Wing, error)
+	GetWing(ID uint, wing *FlyingDevice) error
+	GetAllWings(limit uint, page uint) ([]FlyingDevice, error)
+	GetWingSearchByName(name string) ([]FlyingDevice, error)
 
 	// StartSite
 	CreateStartSite(site *StartSite) error

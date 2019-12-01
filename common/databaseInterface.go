@@ -49,12 +49,12 @@ type FlightLogDatabase interface {
 	GetFlightIncidents(limit int, page int, flights []Flight) error
 
 	// Wing CRUD
-	CreateWing(wing *Wing) error
-	UpdateWing(ID uint, wing *Wing) error
+	CreateWing(wing *FlyingDevice) error
+	UpdateWing(ID uint, wing *FlyingDevice) error
 	DeleteWing(ID uint) error
-	GetWing(ID uint, wing *Wing) (Wing, error)
-	GetAllWings(limit uint, page uint, wing *Wing) error
-	GetWingSearchByName(name string, wings []Wing) error
+	GetWing(ID uint, wing *FlyingDevice) error
+	GetAllWings(limit uint, page uint) ([]FlyingDevice, error)
+	GetWingSearchByName(name string, wings []FlyingDevice) error
 
 	// StartSite
 	CreateStartSite(site *StartSite) error

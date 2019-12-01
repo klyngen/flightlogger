@@ -38,7 +38,10 @@ func TestUserLifecycle(t *testing.T) {
 	var newUser common.User
 	assert.NilError(t, database.GetUser(user.ID, &newUser), "Could not get a single user")
 
-	users, err := database.GetAllUsers(100, 0)
+	// Update the user to acticate it
+	assert.NilError(t, database.ActivateUser(newUser.ID), "Unable to activate the user")
+
+	users, err := database.GetAllUsers(100, 1)
 
 	assert.NilError(t, err, "Error returned when fetching multiple users")
 
