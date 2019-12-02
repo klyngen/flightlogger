@@ -1,8 +1,10 @@
 package repository
 
 import (
+	"crypto/rand"
 	"database/sql"
 	"fmt"
+	"log"
 )
 
 // MySQLRepository describes how we interact with the database
@@ -62,6 +64,17 @@ func (t DataLayerErrorType) New(message string, action string, entity string) *D
 // NewFromException - not neccessary but makes code simpler
 func (t DataLayerErrorType) NewFromException(err error, action string, entity string) *DataLayerError {
 	return t.New(err.Error(), action, entity)
+}
+
+func guidMaker() string {
+	b := make([]byte, 16)
+	_, err := rand.Read(b)
+	if err != nil {
+		log.Fatal(err)
+	}
+	uuid := fmt.Sprintf("%x-%x-%x-%x-%x",
+		b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
+	return uuid
 }
 
 const (

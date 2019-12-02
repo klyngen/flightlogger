@@ -114,11 +114,11 @@ func (s *FlightLogService) GetFlightIncidents(limit int, page int) ([]common.Inc
 }
 
 // Wing CRUD
-func (s *FlightLogService) CreateWing(wing *common.Wing) error {
+func (s *FlightLogService) CreateWing(wing *common.FlyingDevice) error {
 	panic("not implemented")
 }
 
-func (s *FlightLogService) UpdateWing(ID uint, wing *common.Wing) error {
+func (s *FlightLogService) UpdateWing(ID uint, wing *common.FlyingDevice) error {
 	panic("not implemented")
 }
 
@@ -126,15 +126,15 @@ func (s *FlightLogService) DeleteWing(ID uint) error {
 	panic("not implemented")
 }
 
-func (s *FlightLogService) GetWing(ID uint, wing *common.Wing) error {
+func (s *FlightLogService) GetWing(ID uint, wing *common.FlyingDevice) error {
 	panic("not implemented")
 }
 
-func (s *FlightLogService) GetAllWings(limit uint, page uint) ([]common.Wing, error) {
+func (s *FlightLogService) GetAllWings(limit uint, page uint) ([]common.FlyingDevice, error) {
 	panic("not implemented")
 }
 
-func (s *FlightLogService) GetWingSearchByName(name string) ([]common.Wing, error) {
+func (s *FlightLogService) GetWingSearchByName(name string) ([]common.FlyingDevice, error) {
 	panic("not implemented")
 }
 

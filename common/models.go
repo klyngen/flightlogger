@@ -85,7 +85,7 @@ type Waypoint struct {
 
 // Flight - describes a flight
 type Flight struct {
-	ID          uint
+	ID          string
 	User        User
 	Startsite   StartSite
 	Waypoint    Waypoint
@@ -100,6 +100,7 @@ type Flight struct {
 	FlightLog   FileReference
 	FlightType  FlightType
 	TakeOffType TakeoffType
+	Created     time.Time
 }
 
 // Incident - describes an incident
