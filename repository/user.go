@@ -10,11 +10,11 @@ import (
 // CreateUser creates an unique user
 func (f *MySQLRepository) CreateUser(user *common.User) error {
 	stmt, err := f.db.Prepare("INSERT INTO User (ID, Firstname, Lastname, Email, PasswordHash)  VALUES (UUID(), ?, ?, ?, ?)")
-	defer stmt.Close()
 
 	if err != nil {
 		return errors.Wrap(err, "Could not understand the statement")
 	}
+	defer stmt.Close()
 
 	_, err = stmt.Exec(user.FirstName, user.LastName, user.Email, user.PasswordHash)
 
@@ -125,6 +125,10 @@ func (f *MySQLRepository) GetUserByEmail(Email string, user *common.User) error 
 
 	if err != nil {
 		return errors.Wrap(err, "Could not understand the statement")
+	}
+
+	if user == nil {
+		user = &common.User{}
 	}
 
 	err = stmt.QueryRow(Email).Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.PasswordHash, &user.Active)

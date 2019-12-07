@@ -35,9 +35,9 @@ type FlightLogDatabase interface {
 
 	// Flight CRUD
 	CreateFlight(flight *Flight) error
-	UpdateFlight(ID uint, flight *Flight) error
+	UpdateFlight(ID string, flight *Flight) error
 	DeleteFlight(ID string, soft bool) error
-	GetAllFlights(limit int, page int, flights []Flight) error
+	GetAllFlights(limit int, page int) ([]Flight, error)
 	GetFlight(ID string, flight *Flight) error
 
 	// FlightIncident CRUD and search

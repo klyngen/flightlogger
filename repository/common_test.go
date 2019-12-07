@@ -11,7 +11,7 @@ import (
 
 func createConnection(t *testing.T) common.FlightLogDatabase {
 	database := repository.MySQLRepository{}
-	err := database.CreateConnection("root", "", "Flightlog", "", "")
+	err := database.CreateConnection("root", "Drit317955", "Flightlog", "", "")
 
 	assert.NilError(t, err, "Could not connect to the database")
 

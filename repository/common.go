@@ -78,10 +78,18 @@ func guidMaker() string {
 }
 
 const (
-	BadSqlError             DataLayerErrorType = 1
-	EntityResolutionError   DataLayerErrorType = 2
-	RowInsertionError       DataLayerErrorType = 3
-	SerilizationError       DataLayerErrorType = 4
+	// BadSqlError is returned whenever prepared statements cannot be prepared
+	BadSqlError DataLayerErrorType = 1
+
+	// EntityResolutionError is used when we cannot resolve
+	EntityResolutionError DataLayerErrorType = 2
+
+	// RowInsertionError Unable to insert data into the database
+	RowInsertionError DataLayerErrorType = 3
+
+	// SerilizationError is thrown whenever we cannot serialize the output
+	SerilizationError DataLayerErrorType = 4
+
 	DriverFunctionError     DataLayerErrorType = 5
 	TransactionError        DataLayerErrorType = 6
 	StatementExecutionError DataLayerErrorType = 7

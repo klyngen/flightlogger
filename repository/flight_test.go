@@ -8,22 +8,38 @@ import (
 	"github.com/klyngen/flightlogger/common"
 )
 
+func resolveUser(db common.FlightLogDatabase) common.User {
+	var user common.User
+
+	email := "m@m.no"
+
+	db.GetUserByEmail(email, &user)
+
+	if len(user.Email) > 0 {
+		return user
+	}
+
+	user = common.User{
+		FirstName:    "Martin",
+		LastName:     "Klingenberg",
+		Email:        email,
+		PasswordHash: []byte("hash"),
+		Active:       true,
+	}
+
+	db.CreateUser(&user)
+
+	return user
+}
+
 func TestFlightCreationCycle(t *testing.T) {
 	db := createConnection(t)
 
 	// Create a user
-	user := common.User{
-		FirstName:    "Martin",
-		LastName:     "Klingenberg",
-		Email:        "m@m.no",
-		PasswordHash: []byte("hash"),
-	}
-
-	db.CreateUser(&user)
-	defer db.DeleteUser(user.ID)
+	user := resolveUser(db)
 
 	location := common.Location{
-		Name:        "Bangsberget",
+		Name:        "Hangurtoppen",
 		Lattitude:   10.0,
 		Longitude:   60.0,
 		CountryName: "Norway",
@@ -32,16 +48,14 @@ func TestFlightCreationCycle(t *testing.T) {
 	}
 
 	db.CreateLocation(&location)
-	defer db.DeleteLocation(location.ID)
 
 	startsite := common.StartSite{
-		Name:       "Bangsberg Øst-start",
+		Name:       "Hangurtoppen Øst-start",
 		Location:   location,
 		Difficulty: 6,
 	}
 
 	db.CreateStartSite(&startsite)
-	defer db.DeleteStartSite(startsite.ID)
 
 	wing := common.FlyingDevice{
 		Model:      "Alpha 6",
@@ -50,7 +64,6 @@ func TestFlightCreationCycle(t *testing.T) {
 	}
 
 	db.CreateWing(&wing)
-	defer db.DeleteWing(wing.ID)
 
 	// Now do the actual testing....
 	flight := common.Flight{
@@ -67,9 +80,25 @@ func TestFlightCreationCycle(t *testing.T) {
 	flight.HangTime = 20
 
 	assert.NoError(t, db.UpdateFlight(flight.ID, &flight))
+
+	var newFlight common.Flight
+
+	assert.NoError(t, db.GetFlight(flight.ID, &newFlight))
+
+	assert.Equal(t, flight.User.ID, newFlight.User.ID)
+	assert.Equal(t, flight.Startsite.ID, newFlight.Startsite.ID)
+	assert.Equal(t, flight.Wing.ID, newFlight.Wing.ID)
+	assert.Equal(t, flight.Distance, newFlight.Distance)
+	assert.Equal(t, flight.Duration, newFlight.Duration)
+	assert.Equal(t, flight.MaxHight, newFlight.MaxHight)
+
 	// CLEAN UP THE FLIGHT
 	assert.NoError(t, db.DeleteFlight(flight.ID, true))
 	// SHOULD BE ABLE TO BOTH SOFT AND HARD-DELETE
 	assert.NoError(t, db.DeleteFlight(flight.ID, false))
 
+	db.DeleteUser(user.ID)
+	db.DeleteWing(wing.ID)
+	db.DeleteStartSite(startsite.ID)
+	db.DeleteLocation(location.ID)
 }
