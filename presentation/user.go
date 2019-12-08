@@ -11,20 +11,23 @@ import (
 )
 
 func (f *FlightLogApi) mountUserRoutes(router *mux.Router) {
-	router.HandleFunc("/user", f.getUser).Methods("GET")
+	router.HandleFunc("/user/{id}", f.getUser).Methods("GET")
+	router.HandleFunc("/user", f.getUserList).Methods("GET").Queries("page", "limit")
 }
 
 // Get a user from the api
 func (f *FlightLogApi) getUser(w http.ResponseWriter, r *http.Request) {
-	userid := r.URL.Query()["uid"]
+	vars := mux.Vars(r)
+
+	userid := vars["id"]
 
 	log.Printf("Get user for ID: %v", userid[0])
-	if len(userid[0]) > 0 {
+	if len(userid) > 0 {
 		var user common.User
 
 		// If it does not work
-		if err := f.service.GetUser(userid[0], &user); err != nil {
-			log.Printf("Unable to get userId: %s, got error %v", userid[0], err)
+		if err := f.service.GetUser(userid, &user); err != nil {
+			log.Printf("Unable to get userId: %s, got error %v", userid, err)
 			jsend.FormatResponse(w, "Unable to fetch user", jsend.InternalServerError)
 			return
 		}
@@ -42,4 +45,7 @@ func (f *FlightLogApi) getUser(w http.ResponseWriter, r *http.Request) {
 
 	// The userId is empty
 	jsend.FormatResponse(w, "No userid given. uid-parameter must be set", jsend.BadRequest)
+}
+
+func (f *FlightLogApi) getUserList(w http.ResponseWriter, r *http.Request) {
 }

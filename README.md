@@ -58,3 +58,6 @@ All help is appreciated. Send me an email if you wonder how you can contribute o
 
 
 **Check out our board on [taiga.io](https://tree.taiga.io/project/klyngen-better-flightlog/timeline)**
+
+# Authorization
+Flightlogger uses **A**ttribute-**B**ased-**A**ccess-**C**ontrol to control access to resources. Resources are defined in the database.

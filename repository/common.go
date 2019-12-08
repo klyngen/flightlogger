@@ -94,3 +94,19 @@ const (
 	TransactionError        DataLayerErrorType = 6
 	StatementExecutionError DataLayerErrorType = 7
 )
+
+type ResourcePermission int
+
+const (
+	// InsertionPermission can a user insert to a resource
+	InsertionPermission ResourcePermission = 1
+
+	// DeletePermission can a user delete a resource
+	DeletePermission ResourcePermission = 2
+
+	// UpdatePermission can a user update a resource
+	UpdatePermission ResourcePermission = 3
+
+	// SelectPermission can a user Select a resource
+	SelectPermission ResourcePermission = 4
+)

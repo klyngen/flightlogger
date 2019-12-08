@@ -39,7 +39,10 @@ func NewService(service common.FlightLogService, config configuration.Applicatio
 	api.mountAuthenticationRoutes(unprotected)
 	api.mountUserRoutes(protected)
 
+	// Middleware to require login for certain endpoints
 	protected.Use(api.authMiddleware)
+
+	// TODO: add authorization
 
 	return api
 }

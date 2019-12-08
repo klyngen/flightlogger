@@ -153,3 +153,13 @@ type FlightType struct {
 	Name  string
 	Value uint
 }
+
+// Resource defines available actions from a user-perspective
+type Resource struct {
+	Delete bool
+	Create bool
+	Select bool
+	Update bool
+	Name   string
+	URI    string
+}
