@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/gomodule/redigo/redis"
 	"github.com/klyngen/flightlogger/email"
 
 	"github.com/klyngen/flightlogger/repository"
@@ -37,6 +38,7 @@ func main() {
 		log.Fatalf("Likely a database misconfiguration: %v", err)
 	}
 
+
 	// Should be enough to add email-support to our application (DataLayer)
 	emailService := email.NewEmailService(config.EmailConfiguration)
 
@@ -44,11 +46,33 @@ func main() {
 		panic("Cannot have non-existing email-service")
 	}
 
+	var service common.FlightLogService
+
+	if config.RedisConfiguration.IsEmpty() {
+		service = service.NewService(db, emailService, config)
+	} else {
+		redisPool := createRedisPool(config.RedisConfiguration)
+		service = service.NewServiceWithPersistedSession(db, emailService, config, redisstore.New(redisPool))
+	}
+
 	// Instantiate our use-case / service-layer
-	service := service.NewService(db, emailService, config)
 
 	// Create our presentation layer
 	api := presentation.NewService(service, config)
 	api.StartAPI()
 
+}
+
+func createRedisPool(config configuration.DatabaseConfig) {
+	redisPool := &redis.Pool{
+		MaxIdle: 10,
+		Dial: func() (redis.Conn, error) {
+			return redis.Dial(
+				"tcp", 
+				fmt.Sprintf("%s:%s", config.Hostname, config.Port), 
+				redis.DialPassword(config.Password),
+				redis.DialClientName(config.Username),
+			))
+		},
+	}
 }

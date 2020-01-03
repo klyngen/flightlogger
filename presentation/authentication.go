@@ -93,7 +93,7 @@ func (f *FlightLogApi) loginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := f.service.Authenticate(creds.Username, creds.Password)
+	err := f.service.Authenticate(creds.Username, creds.Password)
 
 	if err != nil {
 		jsend.FormatResponse(w, err.Error(), jsend.UnAuthorized)

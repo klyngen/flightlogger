@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -25,42 +26,30 @@ type VerificationClaims struct {
 	UserID string
 }
 
-// Authenticate should verify the logon and create a valid JWT-token
-func (s *FlightLogService) Authenticate(username string, password string) (string, error) {
+// Authenticate should verify the logon and create a session
+func (s *FlightLogService) Authenticate(username string, password string, request *http.Request) error {
+
+	if err := s.sessionstore.RenewToken(request.Context()); err != nil {
+		return errors.Wrap(err, "Unknown session error")
+	}
+
 	var user common.User
-	// Get the user
-	err := s.database.GetUserByEmail(username, &user)
-
-	if err != nil {
-
-		return "", errors.Wrap(err, "Could not fetch the user")
+	// Try to get the user. It might not exist and might not be activated
+	if err := s.database.GetUserByEmail(username, &user); err != nil {
+		return errors.Wrap(err, "Could not fetch the user")
 	}
 
-	err = bcrypt.CompareHashAndPassword(user.PasswordHash, []byte(password))
-
-	if err != nil {
-		return "", errors.Wrap(err, "Bad password")
+	// Check if the hash is set
+	if err := bcrypt.CompareHashAndPassword(user.PasswordHash, []byte(password)) {
+		return errors.Wrap(err, "Bad password")
 	}
 
-	expiration := time.Now().Add(time.Second * time.Duration(s.config.Tokenexpiration)).Unix()
-	// Create the JWT-token
-	claims := &Claims{
-		Username:       user.Email,
-		Firstname:      user.FirstName,
-		Lastname:       user.LastName,
-		UserID:         user.ID,
-		StandardClaims: jwt.StandardClaims{ExpiresAt: expiration},
-	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
+	// Try to set some session parameters
+	s.sessionstore.Put(request.Context(), sessionParamUserID, user.ID)
+	//s.sessionstore.Put(request.Context(), sessionParamRoles, user.)
 
-	tokenString, err := token.SignedString(s.signingkey)
-
-	if err != nil {
-		return "", errors.Wrap(err, "Unable to create token")
-	}
-
-	return tokenString, nil
+	return nil
 }
 
 // ActivateUser is a straight pass-through to the database

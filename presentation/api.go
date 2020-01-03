@@ -53,7 +53,7 @@ func (api *FlightLogApi) StartAPI() {
 
 	log.Printf("Started FlightLogger on port: %s", api.port)
 
-	err := http.ListenAndServe(fmt.Sprintf(":%s", api.port), api.router)
+	err := http.ListenAndServe(fmt.Sprintf(":%s", api.port), api.service.GetSessionManager().LoadAndSave(api.router))
 
 	if err != nil {
 		log.Fatalf("Unable to start the API due to the following error: \n %v", err)

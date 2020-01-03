@@ -22,6 +22,7 @@ type ApplicationConfig struct {
 	PublicKeyPath         string
 	Tokenexpiration       int
 	DatabaseConfiguration DatabaseConfig     `mapstructure:"database"`
+	RedisConfiguration    DatabaseConfig     `mapstructure:"redis"`
 	EmailConfiguration    EmailConfiguration `mapstructure:"email"`
 }
 
@@ -40,6 +41,15 @@ type DatabaseConfig struct {
 	Database string
 	Port     string
 	Username string
+}
+
+// IsEmpty returns false if no parameters are set
+func (d *DatabaseConfig) IsEmpty() bool {
+	if len(d.Hostname) > 0 || len(d.Password) > 0 || len(d.Database) > 0 || len(d.Port) > 0 || len(d.Username) > 0 {
+		return false
+	}
+
+	return true
 }
 
 // GetConfiguration - well... it gets the configuration

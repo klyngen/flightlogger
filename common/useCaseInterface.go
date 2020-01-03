@@ -1,10 +1,16 @@
 package common
 
-import "github.com/dgrijalva/jwt-go"
+import (
+	"net/http"
+
+	"github.com/alexedwards/scs"
+	"github.com/dgrijalva/jwt-go"
+)
 
 // FlightLogService describes how we interact with our business-logic
 type FlightLogService interface {
-	Authenticate(username string, password string) (string, error)
+	GetSessionManager() *scs.SessionManager
+	Authenticate(username string, password string, request *http.Request) error
 	VerifyTokenString(token string) (jwt.Claims, error)
 	ActivateUser(UserID string) error
 
