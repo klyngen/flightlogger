@@ -135,26 +135,3 @@ func (f *MySQLRepository) GetUserByEmail(Email string, user *common.User) error 
 
 	return errors.Wrap(err, "Could not feth the given user")
 }
-
-// UserGroup CRUD and search
-func (f *MySQLRepository) CreateUserGroup(userGroup *common.UserGroup, scopes []int) error {
-	panic("not implemented")
-}
-
-func (f *MySQLRepository) UpdateUserGroup(groupID uint, userGroup *common.UserGroup, permissions []int) error {
-	panic("not implemented")
-}
-
-func (f *MySQLRepository) GetAllUserGroups(limit int, page int, userGroups []common.UserGroup) error {
-	panic("not implemented")
-}
-
-func (f *MySQLRepository) GetUserGroup(ID uint, userGroup *common.UserGroup) error {
-	panic("not implemented")
-}
-
-func (f *MySQLRepository) UserGroupSearchByName(name string, userGroups []common.UserGroup) error {
-	panic("not implemented")
-}
-
-// TODO: We need to add permissions to the user somehow

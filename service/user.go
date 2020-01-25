@@ -40,14 +40,20 @@ func (s *FlightLogService) Authenticate(username string, password string, reques
 	}
 
 	// Check if the hash is set
-	if err := bcrypt.CompareHashAndPassword(user.PasswordHash, []byte(password)) {
+	if err := bcrypt.CompareHashAndPassword(user.PasswordHash, []byte(password)); err != nil {
 		return errors.Wrap(err, "Bad password")
 	}
 
-
 	// Try to set some session parameters
-	s.sessionstore.Put(request.Context(), sessionParamUserID, user.ID)
-	//s.sessionstore.Put(request.Context(), sessionParamRoles, user.)
+	s.sessionstore.Put(request.Context(), string(common.SessionParamUserID), user.ID)
+
+	var role common.Role
+
+	if err := s.database.GetUserRole(user.ID, &role); err != nil {
+		// We got no role. Fall back to default
+		role = common.Role{Name: "default"}
+	}
+	s.sessionstore.Put(request.Context(), string(common.SessionParamRoles), role.Name)
 
 	return nil
 }

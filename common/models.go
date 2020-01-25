@@ -18,29 +18,19 @@ type User struct {
 	LastName      string
 	Email         string
 	Active        bool `json:"-"`
+	Role          Role
 	Clubs         []Club
-	Scopes        []UserScope
-	Groups        []UserGroup
 	Wings         []FlyingDevice
 	TimeUpdated   time.Time
 	TimeGenerated time.Time
 	PasswordHash  []byte `json:"-"` // Salt and hash should not be a part of serialized JSON
 }
 
-// UserScope - the possible scopes of a user
-type UserScope struct {
-	ID        uint
-	Key       string
-	Name      string
-	TimeStamp time.Time
-}
-
-// UserGroup - defines a set of scopes that can be applied to a user
-type UserGroup struct {
-	ID     uint
-	Key    string
-	Name   string
-	Scopes []UserScope
+// Role describes a basic role
+type Role struct {
+	Name        string
+	ID          uint
+	Description string
 }
 
 // Club - describes a paragliding club
@@ -117,7 +107,7 @@ type Incident struct {
 	Weatherconfitions    string
 }
 
-// Wing - describes a wing
+// FlyingDevice - describes a wing
 type FlyingDevice struct {
 	ID         uint
 	Model      string
@@ -127,7 +117,7 @@ type FlyingDevice struct {
 	Details    []FlyingDeviceDetails
 }
 
-// WingDetails - details of the wing test
+// FlyingDeviceDetails - details of the wing test
 type FlyingDeviceDetails struct {
 	ID          uint
 	Description string
@@ -152,14 +142,4 @@ type TakeoffType struct {
 type FlightType struct {
 	Name  string
 	Value uint
-}
-
-// Resource defines available actions from a user-perspective
-type Resource struct {
-	Delete bool
-	Create bool
-	Select bool
-	Update bool
-	Name   string
-	URI    string
 }

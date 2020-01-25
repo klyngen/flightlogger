@@ -2,7 +2,6 @@ package presentation
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -93,20 +92,57 @@ func (f *FlightLogApi) loginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := f.service.Authenticate(creds.Username, creds.Password)
+	err := f.service.Authenticate(creds.Username, creds.Password, r)
 
 	if err != nil {
 		jsend.FormatResponse(w, err.Error(), jsend.UnAuthorized)
 		return
 	}
 
-	w.Header().Set("Authorization", fmt.Sprintf("Bearer %v", token))
-
 	jsend.FormatResponse(w, "Authenticated!", jsend.Success)
 }
 
 // Middleware to verify the accesstoken
 func (f *FlightLogApi) authMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		// Verify the session
+
+		session := f.service.GetSessionManager()
+
+		userID := session.GetString(r.Context(), string(common.SessionParamUserID))
+
+		// If the session has a userID we let them pass
+		if len(userID) == 0 {
+			// Give the middle finger if there is no userID
+			//jsend.FormatResponse(w, "Unauthorized", jsend.UnAuthorized)
+			http.Error(w, "Missing cookie", http.StatusUnauthorized)
+		} else {
+			role := session.GetString(r.Context(), string(common.SessionParamRoles))
+
+			if role == "" {
+				role = "anonymous"
+			}
+
+			enforcer := f.service.GetCasbinEnforcer()
+
+			res, err := enforcer.EnforceSafe(role, userID, r.RequestURI, r.Method)
+
+			if err != nil {
+				//jsend.FormatResponse(w, "Authorization error", jsend.InternalServerError)
+				http.Error(w, "Internal error", http.StatusInternalServerError)
+			} else if res {
+				next.ServeHTTP(w, r) // YOU SHALL PASS
+			}
+		}
+
+		jsend.FormatResponse(w, "You cannot access this endpoint", jsend.Forbidden)
+		//http.Error(w, "Forbidden", http.StatusForbidden)
+	})
+}
+
+// Middleware to verify the accesstoken
+func (f *FlightLogApi) jwtAuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		tokenString := r.Header.Get("Authorization")

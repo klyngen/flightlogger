@@ -7,7 +7,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/alexedwards/scs"
+	"github.com/casbin/casbin"
+	"github.com/casbin/casbin/persist"
+
+	"github.com/alexedwards/scs/v2"
 	"github.com/dgrijalva/jwt-go"
 
 	"github.com/klyngen/flightlogger/common"
@@ -18,6 +21,7 @@ import (
 type FlightLogService struct {
 	database     common.FlightLogDatabase
 	config       configuration.ApplicationConfig
+	casbin       *casbin.Enforcer
 	email        common.EmailServiceInterface
 	sessionstore *scs.SessionManager
 	signingkey   *rsa.PrivateKey
@@ -25,12 +29,16 @@ type FlightLogService struct {
 }
 
 // NewService creates a new flightlogservice
-func NewService(database common.FlightLogDatabase, email common.EmailServiceInterface, config configuration.ApplicationConfig) *FlightLogService {
+func NewService(database common.FlightLogDatabase,
+	email common.EmailServiceInterface,
+	config configuration.ApplicationConfig,
+	casbinStore persist.Adapter) *FlightLogService {
 	sign, verify := getSigningKeys(config.PrivateKeyPath, config.PublicKeyPath)
 
 	return &FlightLogService{database: database,
 		config:       config,
 		signingkey:   sign,
+		casbin:       createCasbinEnforcer(casbinStore),
 		verifykey:    verify,
 		email:        email,
 		sessionstore: createSessionStore(config),
@@ -38,7 +46,11 @@ func NewService(database common.FlightLogDatabase, email common.EmailServiceInte
 }
 
 // NewServiceWithPersistedSession requires some sort of persisted storage
-func NewServiceWithPersistedSession(database common.FlightLogDatabase, email common.EmailServiceInterface, config configuration.ApplicationConfig, sessionStore scs.Store) *FlightLogService {
+func NewServiceWithPersistedSession(database common.FlightLogDatabase,
+	email common.EmailServiceInterface,
+	config configuration.ApplicationConfig,
+	sessionStore scs.Store,
+	casbinStore persist.Adapter) *FlightLogService {
 	sign, verify := getSigningKeys(config.PrivateKeyPath, config.PublicKeyPath)
 
 	sessionManager := createSessionStore(config)
@@ -47,6 +59,7 @@ func NewServiceWithPersistedSession(database common.FlightLogDatabase, email com
 	return &FlightLogService{database: database,
 		config:       config,
 		signingkey:   sign,
+		casbin:       createCasbinEnforcer(casbinStore),
 		verifykey:    verify,
 		email:        email,
 		sessionstore: sessionManager,
@@ -110,10 +123,30 @@ func (f *FlightLogService) GetSessionManager() *scs.SessionManager {
 	return f.sessionstore
 }
 
-// SessionParameters is used to define consts
-type sessionParameters string
+// GetCasbinEnforcer returns the configured enforcer
+func (f *FlightLogService) GetCasbinEnforcer() *casbin.Enforcer {
+	return f.casbin
+}
 
-const (
-	sessionParamUserID sessionParameters = "userid"
-	sessionParamRoles  sessionParameters = "roles"
-)
+func createCasbinEnforcer(persist persist.Adapter) *casbin.Enforcer {
+	cs, _ := casbin.NewEnforcerSafe("./casbin/model.conf")
+
+	cs.AddFunction("isOwner", isOwnerWrapper)
+
+	cs.SetAdapter(persist)
+	cs.EnableAutoSave(true)
+
+	return cs
+}
+
+func isOwner(reqSub string, reqObj string) bool {
+	log.Println(reqSub, reqObj)
+	return true
+}
+
+func isOwnerWrapper(args ...interface{}) (interface{}, error) {
+	reqSub := args[0].(string)
+	reqObj := args[1].(string)
+
+	return bool(isOwner(reqSub, reqObj)), nil
+}

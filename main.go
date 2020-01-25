@@ -4,11 +4,14 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/alexedwards/scs/redisstore"
+	xormadapter "github.com/casbin/xorm-adapter"
 	"github.com/gomodule/redigo/redis"
+	"github.com/klyngen/flightlogger/common"
 	"github.com/klyngen/flightlogger/email"
+	"github.com/klyngen/flightlogger/service"
 
 	"github.com/klyngen/flightlogger/repository"
-	"github.com/klyngen/flightlogger/service"
 
 	"github.com/klyngen/flightlogger/configuration"
 	"github.com/klyngen/flightlogger/presentation"
@@ -38,7 +41,6 @@ func main() {
 		log.Fatalf("Likely a database misconfiguration: %v", err)
 	}
 
-
 	// Should be enough to add email-support to our application (DataLayer)
 	emailService := email.NewEmailService(config.EmailConfiguration)
 
@@ -46,33 +48,46 @@ func main() {
 		panic("Cannot have non-existing email-service")
 	}
 
-	var service common.FlightLogService
+	// Create the casbin-adapter
+	adapter := xormadapter.NewAdapter("mysql",
+		createConnectionString(config.DatabaseConfiguration.Username,
+			config.DatabaseConfiguration.Password,
+			config.DatabaseConfiguration.Hostname,
+			config.DatabaseConfiguration.Port))
 
-	if config.RedisConfiguration.IsEmpty() {
-		service = service.NewService(db, emailService, config)
-	} else {
-		redisPool := createRedisPool(config.RedisConfiguration)
-		service = service.NewServiceWithPersistedSession(db, emailService, config, redisstore.New(redisPool))
-	}
+	var fservice common.FlightLogService
 
 	// Instantiate our use-case / service-layer
+	if config.RedisConfiguration.IsEmpty() {
+		fservice = service.NewService(db, emailService, config, adapter)
+	} else {
+		redisPool := createRedisPool(config.RedisConfiguration)
+		fservice = service.NewServiceWithPersistedSession(db, emailService, config, redisstore.New(redisPool), adapter)
+	}
 
 	// Create our presentation layer
-	api := presentation.NewService(service, config)
-	api.StartAPI()
-
+	api := presentation.NewService(fservice, config)
+	api.StartAPI() // LET THE GAMES BEGIN
 }
 
-func createRedisPool(config configuration.DatabaseConfig) {
-	redisPool := &redis.Pool{
+func createRedisPool(config configuration.DatabaseConfig) *redis.Pool {
+	return &redis.Pool{
 		MaxIdle: 10,
 		Dial: func() (redis.Conn, error) {
 			return redis.Dial(
-				"tcp", 
-				fmt.Sprintf("%s:%s", config.Hostname, config.Port), 
+				"tcp",
+				fmt.Sprintf("%s:%s", config.Hostname, config.Port),
 				redis.DialPassword(config.Password),
-				redis.DialClientName(config.Username),
-			))
+			)
 		},
 	}
+}
+
+func createConnectionString(username string, password string, hostname string, port string) string {
+	log.Println(port)
+	if len(hostname) > 0 { // Full config
+		return fmt.Sprintf("%v:%v@tcp(%v:%v)/", username, password, hostname, port)
+	}
+
+	return fmt.Sprintf("%v:%v@/", username, password)
 }

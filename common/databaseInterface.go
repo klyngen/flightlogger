@@ -21,13 +21,6 @@ type FlightLogDatabase interface {
 	LocationSearchByName(name string) ([]Location, error)
 	GetLocation(ID uint, location *Location) error
 
-	// UserGroup CRUD and search
-	CreateUserGroup(userGroup *UserGroup, scopes []int) error
-	UpdateUserGroup(groupID uint, userGroup *UserGroup, permissions []int) error
-	GetAllUserGroups(limit int, page int, userGroups []UserGroup) error
-	GetUserGroup(ID uint, userGroup *UserGroup) error
-	UserGroupSearchByName(name string, userGroups []UserGroup) error
-
 	// FileCreation CRUD
 	CreateFile(file *FileReference) error
 	GetFile(ID uint, file *FileReference) error
@@ -70,4 +63,11 @@ type FlightLogDatabase interface {
 	UpdateWayPoint(ID uint, point *Waypoint) error
 	GetWaypoint(ID uint, point *Waypoint) error
 	GetAllWaypoints(limit int, page int) ([]Waypoint, error)
+
+	// CreateRole Create a new Role
+	CreateRole(role *Role) error
+	// DeleteRole deletes a role
+	DeleteRole(ID uint) error
+	// GetUserRole gets a user role
+	GetUserRole(userID string, role *Role) error
 }

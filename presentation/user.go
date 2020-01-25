@@ -22,6 +22,7 @@ func (f *FlightLogApi) getUser(w http.ResponseWriter, r *http.Request) {
 	userid := vars["id"]
 
 	log.Printf("Get user for ID: %v", userid[0])
+
 	if len(userid) > 0 {
 		var user common.User
 

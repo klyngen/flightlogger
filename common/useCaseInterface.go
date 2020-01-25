@@ -3,13 +3,15 @@ package common
 import (
 	"net/http"
 
-	"github.com/alexedwards/scs"
+	"github.com/alexedwards/scs/v2"
+	"github.com/casbin/casbin"
 	"github.com/dgrijalva/jwt-go"
 )
 
 // FlightLogService describes how we interact with our business-logic
 type FlightLogService interface {
 	GetSessionManager() *scs.SessionManager
+	GetCasbinEnforcer() *casbin.Enforcer
 	Authenticate(username string, password string, request *http.Request) error
 	VerifyTokenString(token string) (jwt.Claims, error)
 	ActivateUser(UserID string) error
@@ -26,13 +28,6 @@ type FlightLogService interface {
 	DeleteLocation(ID uint) error
 	LocationSearchByName(name string) ([]Location, error)
 	GetLocation(ID uint, location *Location) error
-
-	// UserGroup CRUD and search
-	CreateUserGroup(userGroup *UserGroup, scopes []int) error
-	UpdateUserGroup(groupID uint, userGroup *UserGroup, permissions []int) error
-	GetAllUserGroups(limit int, page int) ([]UserGroup, error)
-	GetUserGroup(ID uint, userGroup *UserGroup) error
-	UserGroupSearchByName(name string) ([]UserGroup, error)
 
 	// FileCreation CRUD
 	CreateFile(file *FileReference) error

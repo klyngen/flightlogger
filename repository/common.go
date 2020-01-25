@@ -90,9 +90,10 @@ const (
 	// SerilizationError is thrown whenever we cannot serialize the output
 	SerilizationError DataLayerErrorType = 4
 
-	DriverFunctionError     DataLayerErrorType = 5
-	TransactionError        DataLayerErrorType = 6
-	StatementExecutionError DataLayerErrorType = 7
+	DriverFunctionError            DataLayerErrorType = 5
+	TransactionError               DataLayerErrorType = 6
+	StatementExecutionError        DataLayerErrorType = 7
+	LastInsertionIDExtractionError DataLayerErrorType = 8
 )
 
 type ResourcePermission int
