@@ -21,7 +21,7 @@ func (f *FlightLogApi) getUser(w http.ResponseWriter, r *http.Request) {
 
 	userid := vars["id"]
 
-	log.Printf("Get user for ID: %v", userid[0])
+	log.Printf("Get user for ID: %v", userid)
 
 	if len(userid) > 0 {
 		var user common.User
@@ -33,6 +33,8 @@ func (f *FlightLogApi) getUser(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		log.Println(user)
+
 		// If it worked
 		if &user == nil {
 			log.Println("this was wrong")
@@ -40,7 +42,7 @@ func (f *FlightLogApi) getUser(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		jsend.FormatResponse(w, user, jsend.Success)
+		jsend.FormatResponse(w, &user, jsend.Success)
 		return
 	}
 

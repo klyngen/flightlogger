@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/alexedwards/scs/redisstore"
-	xormadapter "github.com/casbin/xorm-adapter"
+	xormadapter "github.com/casbin/xorm-adapter/v2"
 	"github.com/gomodule/redigo/redis"
 	"github.com/klyngen/flightlogger/common"
 	"github.com/klyngen/flightlogger/email"
@@ -49,7 +49,7 @@ func main() {
 	}
 
 	// Create the casbin-adapter
-	adapter := xormadapter.NewAdapter("mysql",
+	adapter, _ := xormadapter.NewAdapter("mysql",
 		createConnectionString(config.DatabaseConfiguration.Username,
 			config.DatabaseConfiguration.Password,
 			config.DatabaseConfiguration.Hostname,

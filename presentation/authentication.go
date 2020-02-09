@@ -126,13 +126,15 @@ func (f *FlightLogApi) authMiddleware(next http.Handler) http.Handler {
 
 			enforcer := f.service.GetCasbinEnforcer()
 
-			res, err := enforcer.EnforceSafe(role, userID, r.RequestURI, r.Method)
+			res, err := enforcer.Enforce(role, userID, r.RequestURI, r.Method)
 
 			if err != nil {
 				//jsend.FormatResponse(w, "Authorization error", jsend.InternalServerError)
+				log.Println(err)
 				http.Error(w, "Internal error", http.StatusInternalServerError)
 			} else if res {
 				next.ServeHTTP(w, r) // YOU SHALL PASS
+				return
 			}
 		}
 

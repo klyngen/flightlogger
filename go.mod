@@ -7,7 +7,8 @@ require (
 	github.com/alexedwards/scs/redisstore v0.0.0-20191202162535-94b5622279d9
 	github.com/alexedwards/scs/v2 v2.2.0
 	github.com/casbin/casbin v1.9.1
-	github.com/casbin/xorm-adapter v1.0.0
+	github.com/casbin/casbin/v2 v2.1.2
+	github.com/casbin/xorm-adapter/v2 v2.0.1
 	github.com/davecgh/go-spew v1.1.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fsnotify/fsnotify v1.4.7

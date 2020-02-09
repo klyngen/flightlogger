@@ -7,8 +7,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/casbin/casbin"
-	"github.com/casbin/casbin/persist"
+	"github.com/casbin/casbin/v2"
+	"github.com/casbin/casbin/v2/persist"
+	"github.com/casbin/casbin/v2/util"
 
 	"github.com/alexedwards/scs/v2"
 	"github.com/dgrijalva/jwt-go"
@@ -129,24 +130,14 @@ func (f *FlightLogService) GetCasbinEnforcer() *casbin.Enforcer {
 }
 
 func createCasbinEnforcer(persist persist.Adapter) *casbin.Enforcer {
-	cs, _ := casbin.NewEnforcerSafe("./casbin/model.conf")
+	cs, _ := casbin.NewEnforcer("./casbin/model.conf", persist)
+
+	cs.LoadPolicy()
 
 	cs.AddFunction("isOwner", isOwnerWrapper)
+	cs.AddFunction("keyMatch3", util.KeyMatch4Func)
 
-	cs.SetAdapter(persist)
 	cs.EnableAutoSave(true)
 
 	return cs
-}
-
-func isOwner(reqSub string, reqObj string) bool {
-	log.Println(reqSub, reqObj)
-	return true
-}
-
-func isOwnerWrapper(args ...interface{}) (interface{}, error) {
-	reqSub := args[0].(string)
-	reqObj := args[1].(string)
-
-	return bool(isOwner(reqSub, reqObj)), nil
 }

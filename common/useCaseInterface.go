@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/alexedwards/scs/v2"
-	"github.com/casbin/casbin"
+	"github.com/casbin/casbin/v2"
 	"github.com/dgrijalva/jwt-go"
 )
 
