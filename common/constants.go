@@ -11,7 +11,7 @@ const (
 	// HangGlider flyingDevice
 	HangGlider FlyingDeviceType = 3
 	// HotAirBaloon flyingDevice
-	HotAirBaloon FlyingDeviceType = 4
+	HotAirBalloon FlyingDeviceType = 4
 )
 
 // SessionParameters is used to define consts
